@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme { --font-display: "Poppins", sans-serif; --font-sans: "Inter", sans-serif; }
+
+:root { background: #000; color: #fff; font-family: "Inter", sans-serif; scroll-behavior: smooth; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: #000; }
+button, a { -webkit-tap-highlight-color: transparent; }
+
+/* The homepage uses the document scroller, so taller sections remain naturally scrollable. */
+html:has(.home-scroll) { scroll-snap-type: y proximity; scroll-padding-top: 0; }
+.page-snap-section { scroll-snap-align: start; scroll-snap-stop: normal; }
+
+.nav-link { padding: .65rem .85rem; border-radius: .375rem; font-family: "Poppins", sans-serif; font-size: .95rem; font-weight: 500; color: #fff; transition: color .2s, background .2s; }
+.nav-link:hover { color: #b91c1c; background: rgba(127,29,29,.14); }
+.button-primary, .button-outline { display: inline-flex; align-items: center; justify-content: center; border-radius: .5rem; padding: .7rem 1rem; font-family: "Poppins", sans-serif; font-size: .9rem; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; transition: transform .2s, background .2s, color .2s; }
+.button-primary { background: #7f1d1d; box-shadow: 0 4px 15px rgba(90,0,0,.45); }.button-primary:hover { background: #991b1b; transform: scale(1.04); }
+.button-outline { border: 2px solid #fff; }.button-outline:hover { background: #fff; color: #000; transform: scale(1.04); }
+.footer-icon { display: grid; height: 2.75rem; width: 2.75rem; place-items: center; border-radius: 9999px; background: linear-gradient(135deg, #833ab4, #e1306c 52%, #f77737); color: #fff; transition: transform .2s, filter .2s; }.footer-icon:hover { transform: scale(1.1); filter: brightness(1.12); }.footer-icon img { height: 1.35rem; width: 1.35rem; filter: brightness(0) invert(1); }.footer-contact { display: flex; align-items: center; justify-content: center; gap: .65rem; transition: color .2s; }.footer-contact:hover { color: #ef4444; }.footer-contact svg { height: 1rem; width: 1rem; color: #b91c1c; } @media (min-width: 640px) { .footer-contact { justify-content: flex-start; } }
+.footer-icon-linkedin { background: #0a66c2; }
+.home-photo-background { position: absolute; inset: 100vh 0 0; z-index: -2; background-position: center top; background-size: cover; background-attachment: fixed; opacity: .15; mask-image: linear-gradient(to bottom, transparent, black 15%, black 75%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 75%, transparent); }
+.racing-grid { position: absolute; inset: 0; z-index: -1; overflow: hidden; opacity: .34; background-image: linear-gradient(135deg, transparent 49.8%, rgba(127,29,29,.28) 50%, transparent 50.2%), linear-gradient(45deg, transparent 49.8%, rgba(127,29,29,.22) 50%, transparent 50.2%); background-size: 340px 340px; }
+.section-lines { position: absolute; inset: 0; pointer-events: none; opacity: .42; background-image: linear-gradient(108deg, transparent 36%, rgba(127,29,29,.6) 36.1%, transparent 36.4%), linear-gradient(72deg, transparent 68%, rgba(127,29,29,.4) 68.1%, transparent 68.4%); }
+::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #161616; } ::-webkit-scrollbar-thumb { border-radius: 99px; background: #7f1d1d; }
