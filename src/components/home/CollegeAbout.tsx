@@ -1,20 +1,33 @@
 import { motion } from 'framer-motion'
-import campusBackground from '../../assets/images/Mitsbg.jpg'
-import mitsLogo from '../../assets/images/mits new logo.jpg'
+import { ArrowUpRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { homeContent } from '../../data/home'
 
 export default function CollegeAbout() {
-  return <section id="college" className="page-snap-section relative mx-auto flex min-h-svh max-w-7xl items-center overflow-hidden rounded-b-xl px-6 py-8 shadow-2xl md:px-12 md:py-12">
-    <motion.div className="absolute inset-0 bg-cover bg-center opacity-85" style={{ backgroundImage: `url(${campusBackground})`, maskImage: 'radial-gradient(circle at center, black 35%, transparent 100%)', WebkitMaskImage: 'radial-gradient(circle at center, black 35%, transparent 100%)' }} initial={{ opacity: 0, scale: 1.05 }} whileInView={{ opacity: .85, scale: 1 }} viewport={{ once: true, amount: .25 }} transition={{ duration: 1.2 }} />
-    <div className="absolute inset-0 bg-gradient-to-r from-red-950/35 via-black/20 to-transparent" />
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[clamp(7rem,20vh,12rem)] bg-gradient-to-b from-black via-black/80 to-transparent" aria-hidden="true" />
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[clamp(7rem,22vh,13rem)] bg-gradient-to-b from-transparent via-black/75 to-black" aria-hidden="true" />
+  const { intro, highlights, achievements } = homeContent
+
+  return <section id="college" className="page-snap-section relative overflow-hidden bg-[#080808] py-24 sm:py-32">
     <div className="section-lines" aria-hidden="true" />
-    <div className="relative z-20 grid items-center gap-8 md:grid-cols-2 md:gap-12">
-      <motion.div initial={{ opacity: 0, x: -36 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: .3 }} transition={{ duration: .7 }}>
-        <h2 className="font-display text-3xl font-extrabold leading-tight sm:text-4xl">Muthoot Institute of Technology and Science</h2>
-        <p className="mt-4 max-w-xl leading-7 text-zinc-300">A premier institute dedicated to fostering innovation, academic excellence, and cutting-edge research in engineering and technology. We nurture future leaders through world-class education in a vibrant, collaborative environment.</p>
-      </motion.div>
-      <motion.div className="flex justify-center md:justify-end" initial={{ opacity: 0, x: 36 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: .3 }} transition={{ duration: .7, delay: .15 }}><img className="w-56 rounded-xl object-contain shadow-2xl sm:w-72" src={mitsLogo} alt="Muthoot Institute of Technology and Science" /></motion.div>
+    <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-10 lg:px-12">
+      <div className="grid items-center gap-12 lg:grid-cols-[.9fr_1.1fr] lg:gap-24">
+        <motion.div initial={{ opacity: 0, x: -28 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: .25 }} transition={{ duration: .7 }}>
+          <p className="home-kicker">{intro.eyebrow}</p>
+          <h2 className="mt-4 max-w-2xl font-display text-4xl font-extrabold uppercase leading-[.95] tracking-[-.03em] sm:text-6xl">{intro.title}</h2>
+          <p className="mt-6 max-w-xl text-base leading-7 text-zinc-300">{intro.description}</p>
+          <Link className="mt-8 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[.14em] text-red-400 transition hover:text-white" to="/about">More about MITS Motorsports <ArrowUpRight className="h-4 w-4" /></Link>
+        </motion.div>
+        <motion.div className="home-image-frame" initial={{ opacity: 0, scale: .96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, amount: .25 }} transition={{ duration: .8, delay: .1 }} role={intro.imageUrl ? 'img' : undefined} aria-label={intro.imageUrl ? intro.imageAlt : undefined} style={intro.imageUrl ? { backgroundImage: `url(${intro.imageUrl})` } : undefined}>
+          <span className="home-image-label">Image to be supplied</span>
+          <span className="home-image-mark" aria-hidden="true">MITS / 01</span>
+        </motion.div>
+      </div>
+      <div className="mt-24 grid gap-4 border-t border-white/10 pt-8 sm:grid-cols-3">
+        {highlights.map(({ title, description, icon: Icon }, index) => <motion.div key={title} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .4 }} transition={{ duration: .5, delay: index * .1 }} className="border-l border-red-700/70 pl-5"><Icon className="h-5 w-5 text-red-500" /><h3 className="mt-4 font-display text-xl font-bold uppercase">{title}</h3><p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p></motion.div>)}
+      </div>
+      <div className="mt-24 border-t border-white/10 pt-8">
+        <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="home-kicker">Proven under pressure</p><h2 className="mt-3 font-display text-3xl font-extrabold uppercase sm:text-5xl">Competition record</h2></div><Link className="text-sm font-bold uppercase tracking-[.14em] text-zinc-400 hover:text-red-400" to="/legacy">View legacy <ArrowUpRight className="inline h-4 w-4" /></Link></div>
+        <div className="mt-8 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-2">{achievements.map((achievement) => <article key={achievement.id} className="bg-[#0d0d0d] p-6 sm:p-8"><div className="flex items-baseline justify-between gap-4"><span className="font-display text-4xl font-extrabold text-red-500">{achievement.result}</span><span className="text-sm text-zinc-500">{achievement.year}</span></div><h3 className="mt-6 font-display text-2xl font-bold uppercase">{achievement.competition}</h3><p className="mt-2 text-sm leading-6 text-zinc-400">{achievement.description}</p></article>)}</div>
+      </div>
     </div>
   </section>
 }
