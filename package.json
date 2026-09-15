@@ -6,13 +6,24 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server/server.js",
+    "test": "node --test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
     "@tailwindcss/vite": "^4.3.3",
+    "bcryptjs": "^3.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
     "framer-motion": "^13.2.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^1.45.0",
+    "mongoose": "^8.8.0",
+    "multer": "^1.4.5-lts.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-helmet-async": "^3.0.0",
