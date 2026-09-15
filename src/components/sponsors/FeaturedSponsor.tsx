@@ -11,7 +11,7 @@ export default function FeaturedSponsor({ sponsor }: FeaturedSponsorProps) {
     <img
       src={sponsor.logoUrl}
       alt={sponsor.name}
-      className="max-h-24 w-full object-contain drop-shadow-[0_16px_28px_rgba(127,29,29,0.18)] sm:max-h-28 lg:max-h-32"
+      className="max-h-24 w-2/3 scale-150 object-contain drop-shadow-[0_16px_28px_rgba(127,29,29,0.18)] sm:max-h-28 lg:max-h-32"
     />
   ) : (
     <div className="flex h-40 w-full max-w-xl items-center justify-center border border-dashed border-red-700/60 bg-red-950/20 text-center sm:h-52">

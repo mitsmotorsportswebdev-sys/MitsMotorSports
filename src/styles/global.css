@@ -448,6 +448,9 @@ html:has(.home-scroll) {
 .about-hero-visual {
     min-height: 26rem;
     border-left: 2px solid rgba(185, 28, 28, 0.75);
+    background-color: #000;
+    background-repeat: no-repeat;
+    background-size: contain;
     clip-path: polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%);
 }
 .about-intro-visual {

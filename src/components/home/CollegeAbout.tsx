@@ -17,7 +17,6 @@ export default function CollegeAbout() {
           <Link className="mt-8 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[.14em] text-red-400 transition hover:text-white" to="/about">More about MITS Motorsports <ArrowUpRight className="h-4 w-4" /></Link>
         </motion.div>
         <motion.div className="home-image-frame" initial={{ opacity: 0, scale: .96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, amount: .25 }} transition={{ duration: .8, delay: .1 }} role={intro.imageUrl ? 'img' : undefined} aria-label={intro.imageUrl ? intro.imageAlt : undefined} style={intro.imageUrl ? { backgroundImage: `url(${intro.imageUrl})` } : undefined}>
-          <span className="home-image-label">Image to be supplied</span>
           <span className="home-image-mark" aria-hidden="true">MITS / 01</span>
         </motion.div>
       </div>

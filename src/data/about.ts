@@ -39,12 +39,12 @@ export const aboutContent: AboutContent = {
   hero: {
     title: 'ABOUT US',
     subtitle: 'Discover the passion, innovation, and excellence that drives MITS Motorsports',
-    imageUrl: '',
+    imageUrl: '/images/about/faviconLogo.png',
   },
   introduction: {
     title: 'About MITS Motorsports',
     description: 'MITS Motorsports is a student-run organization that designs, builds, and races vehicles for various competitions. Our team is composed of passionate engineering students dedicated to applying theoretical knowledge to practical challenges.',
-    imageUrl: '',
+    imageUrl: '/images/about/about.jpg',
   },
   mission: {
     title: 'Our Mission',

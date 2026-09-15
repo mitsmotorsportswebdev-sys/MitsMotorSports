@@ -15,7 +15,7 @@ export default function SponsorCard({ sponsor, index }: SponsorCardProps) {
           <img
             src={sponsor.logoUrl}
             alt={sponsor.name}
-            className="max-h-20 w-full object-contain opacity-90 transition duration-300 ease-out group-hover:scale-[1.04] group-hover:opacity-100"
+            className="max-h-300 w-full object-contain opacity-90 transition duration-300 ease-out group-hover:scale-[1.04] group-hover:opacity-100"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center border border-dashed border-red-700/60 bg-red-950/20 text-center">

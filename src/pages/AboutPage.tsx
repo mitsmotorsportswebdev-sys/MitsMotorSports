@@ -15,15 +15,14 @@ const reveal = {
   visible: { opacity: 1, y: 0 },
 }
 
-function ImagePlaceholder({ imageUrl, label, className = '' }: { imageUrl: string; label: string; className?: string }) {
+function ImagePlaceholder({ imageUrl, className = '' }: { imageUrl: string; className?: string }) {
   return (
     <div
       className={`about-image-placeholder ${className}`}
       role={imageUrl ? 'img' : undefined}
-      aria-label={imageUrl ? label : undefined}
+      aria-label={imageUrl ? 'MITS Motorsports' : undefined}
       style={imageUrl ? { backgroundImage: `url(${imageUrl})` } : undefined}
     >
-      {!imageUrl && <span>{label}</span>}
       <span className="about-image-corner" aria-hidden="true" />
     </div>
   )
@@ -59,22 +58,20 @@ export default function AboutPage() {
       <main className="relative z-10 mx-auto max-w-7xl px-5 pb-20 pt-28 sm:px-8 lg:px-12 lg:pt-36">
         <section className="grid min-h-[calc(100vh-9rem)] items-center gap-12 pb-24 lg:grid-cols-[1fr_.9fr] lg:gap-20 lg:pb-32">
           <motion.div initial="hidden" animate="visible" variants={reveal} transition={{ duration: prefersReducedMotion ? 0 : .7 }}>
-            <p className="about-kicker"><span className="about-kicker-mark" /> MITS MOTORSPORTS / 01</p>
             <h1 className="mt-6 max-w-4xl font-display text-[clamp(3.5rem,11vw,9rem)] font-extrabold uppercase leading-[.82] tracking-[-.06em] text-white">{aboutContent.hero.title}</h1>
             <div className="mt-8 flex max-w-xl items-start gap-4 border-l-2 border-red-600 pl-5 sm:pl-6">
               <p className="text-base leading-7 text-zinc-300 sm:text-lg sm:leading-8">{aboutContent.hero.subtitle}</p>
             </div>
-            <div className="mt-12 flex items-center gap-3 text-xs font-bold uppercase tracking-[.2em] text-zinc-500"><span className="h-px w-12 bg-red-600" /> Engineering in motion</div>
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: prefersReducedMotion ? 0 : .8, delay: prefersReducedMotion ? 0 : .15 }}>
-            <ImagePlaceholder imageUrl={aboutContent.hero.imageUrl} label="Hero image to be supplied" className="about-hero-visual" />
+            <ImagePlaceholder imageUrl={aboutContent.hero.imageUrl} className="about-hero-visual" />
           </motion.div>
         </section>
 
         <section className="border-t border-white/10 py-24 sm:py-32">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: .2 }} variants={reveal} transition={{ duration: prefersReducedMotion ? 0 : .65 }} className="grid gap-12 lg:grid-cols-[.75fr_1.25fr] lg:gap-24">
             <div><p className="about-kicker">The team / 02</p><h2 className="mt-5 max-w-sm font-display text-4xl font-extrabold uppercase leading-[.95] tracking-[-.04em] sm:text-6xl">Built to move ideas forward.</h2></div>
-            <div><p className="max-w-3xl text-2xl font-medium leading-tight text-zinc-100 sm:text-4xl sm:leading-tight">{aboutContent.introduction.description}</p><div className="mt-10"><ImagePlaceholder imageUrl={aboutContent.introduction.imageUrl} label="Team image to be supplied" className="about-intro-visual" /></div></div>
+            <div><p className="max-w-3xl text-2xl font-medium leading-tight text-zinc-100 sm:text-4xl sm:leading-tight">{aboutContent.introduction.description}</p><div className="mt-10"><ImagePlaceholder imageUrl={aboutContent.introduction.imageUrl} className="about-intro-visual" /></div></div>
           </motion.div>
         </section>
 
