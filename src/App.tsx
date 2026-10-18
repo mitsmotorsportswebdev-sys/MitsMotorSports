@@ -19,6 +19,7 @@ import PagePlaceholder from './pages/PagePlaceholder'
 import PublicProjectsPage from './pages/ProjectsPage'
 import SponsorsPage from './pages/SponsorsPage'
 import TeamPage from './pages/TeamPage'
+import EventDetailsPage from './pages/EventDetailsPage'
 
 const futureRoutes = ['/contact', '/join-us']
 
@@ -50,10 +51,10 @@ export default function App() {
         <Route path="/projects/aethon" element={<AethonPage />} />
         <Route path="/projects/ebaja" element={<EBajaPage />} />
         <Route path="/team" element={<TeamPage />} />
+        <Route path="/events/:eventId" element={<EventDetailsPage />} />
         {futureRoutes.map((path) => <Route key={path} path={path} element={<PagePlaceholder />} />)}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
   )
 }
-

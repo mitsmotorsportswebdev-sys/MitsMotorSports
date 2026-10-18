@@ -11,7 +11,7 @@ export default function TeamMemberCard({ member, featured = false }: { member: T
     <motion.article
       whileHover={{ y: -8 }}
       transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-      className={`group relative w-full overflow-hidden bg-[#110d0d] text-white shadow-[0_18px_50px_rgba(0,0,0,.42)] ${featured ? 'max-w-[390px]' : 'max-w-[320px]'}`}
+      className="group relative w-full max-w-[320px] overflow-hidden bg-[#110d0d] text-white shadow-[0_18px_50px_rgba(0,0,0,.42)]"
       style={{ clipPath }}
     >
       <div className="absolute inset-0 bg-[linear-gradient(145deg,rgba(185,28,28,.94)_0%,rgba(85,10,10,.9)_34%,#0d0d0f_34%,#0d0d0f_100%)]" />

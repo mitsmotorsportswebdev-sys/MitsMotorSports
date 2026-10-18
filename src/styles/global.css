@@ -282,6 +282,20 @@ html:has(.home-scroll) {
     letter-spacing: 0.22em;
     text-transform: uppercase;
 }
+
+.min-h-screen > main > div.relative.isolate.overflow-x-clip {
+    background-color: #090909;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(
+        118deg,
+        transparent 42%,
+        rgba(127, 29, 29, 0.16) 42.1%,
+        transparent 42.5%
+    );
+    background-size: 46px 46px, 46px 46px, auto;
+}
 .hero-visual {
     background-color: #151515;
     background-image:

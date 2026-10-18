@@ -11,7 +11,7 @@ export interface TeamMember {
 }
 
 export const teamMembers: TeamMember[] = [
-  { id: 'dr-nikhil-m-thoppil', name: 'Dr. Nikhil M Thoppil', department: 'Mechanical Engineering', category: 'Faculty In Charge', imageUrl: '', displayOrder: 1, active: true },
+  { id: 'dr-nikhil-m-thoppil', name: 'Dr. Nikhil M Thoppil', department: 'Mechanical Engineering', category: 'Faculty In Charge', imageUrl: '/images/team/image.png', displayOrder: 1, active: true },
   { id: 'dr-jim-george', name: 'Dr. Jim George', department: 'Electrical Engineering', category: 'Faculty In Charge', imageUrl: '', displayOrder: 2, active: true },
   { id: 'madhav-s', name: 'Madhav S', role: 'Chair', category: 'Executive Committee', imageUrl: '', displayOrder: 1, active: true },
   { id: 'abrem-vathakatel', name: 'Abrem Vathakatel', role: 'Vice-Chair', category: 'Executive Committee', imageUrl: '', displayOrder: 2, active: true },
