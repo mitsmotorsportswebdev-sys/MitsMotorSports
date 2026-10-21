@@ -18,9 +18,7 @@ export default function ProjectOverview({ title, description, imageUrl = '', sta
 
   return (
     <section className="relative overflow-hidden px-4 py-16 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(127,29,29,0.14),transparent_30%),linear-gradient(180deg,#000_0%,#0b0b0d_100%)]" />
-
-      <div className="relative mx-auto max-w-7xl overflow-hidden border border-white/10 bg-[#0e0e10] shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+      <div className="relative mx-auto max-w-7xl overflow-hidden border border-white/10 bg-black/35 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-sm">
         <div className="grid items-center gap-10 p-6 md:p-10 lg:grid-cols-[0.95fr_1.05fr] lg:p-14">
           <motion.div
             initial={{ opacity: 0, x: -24 }}

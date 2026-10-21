@@ -109,10 +109,8 @@ export default function GalleryPage() {
   }, [selectedItem])
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#090a0c] font-['Poppins',sans-serif] text-white">
+    <main className="min-h-screen overflow-hidden bg-transparent font-['Poppins',sans-serif] text-white">
       <section className="relative isolate border-b border-white/10 px-5 pb-14 pt-28 sm:px-8 sm:pb-20 sm:pt-36 lg:px-12">
-        <div className="absolute inset-0 -z-10 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] [background-size:64px_64px]" />
-        <div className="absolute right-[-8rem] top-24 -z-10 h-80 w-80 rounded-full bg-red-950/30 blur-3xl" />
         <div className="mx-auto max-w-7xl">
           <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
             <motion.div variants={fadeUp} className="mb-7 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.24em] text-red-400"><span className="h-px w-10 bg-red-500" /> MITS MOTORSPORTS / ARCHIVE</motion.div>

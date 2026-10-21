@@ -25,15 +25,7 @@ export default function ProjectHero({
   const hasImage = imageUrl.trim().length > 0
 
   return (
-    <section className="relative isolate overflow-hidden bg-black px-4 pb-8 pt-8 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 opacity-40">
-        <div className="absolute left-8 top-12 h-48 w-48 rotate-45 border border-red-700/60" />
-        <div className="absolute right-8 top-24 h-64 w-64 rotate-12 border border-red-700/50" />
-        <div className="absolute bottom-12 left-1/3 h-52 w-52 -rotate-12 border border-red-700/45" />
-        <div className="absolute bottom-4 right-1/4 h-36 w-36 rotate-45 border border-red-700/50" />
-        <div className="absolute left-1/2 top-0 h-full w-px bg-gradient-to-b from-transparent via-red-700/45 to-transparent" />
-      </div>
-
+    <section className="relative isolate overflow-hidden bg-transparent px-4 pb-8 pt-8 sm:px-6 lg:px-8">
       <div className="relative mx-auto grid max-w-7xl items-center gap-8 py-10 lg:grid-cols-[1.15fr_0.85fr] lg:py-16">
         <motion.div
           initial={{ opacity: 0, y: 26 }}

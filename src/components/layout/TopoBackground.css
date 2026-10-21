@@ -1,0 +1,23 @@
+/* Fixed full-screen layer. Dot grid is pure CSS (never redrawn).
+   Gradient is centred in each 36px tile, so the first dot sits at 18px. */
+.topo-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #050505;
+  background-image: radial-gradient(circle at center,
+    rgba(255, 255, 255, 0.12) 0,
+    rgba(255, 255, 255, 0.12) 1.05px,
+    rgba(255, 255, 255, 0) 1.7px);
+  background-size: 36px 36px;
+}
+
+.topo-bg canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  contain: strict;
+}

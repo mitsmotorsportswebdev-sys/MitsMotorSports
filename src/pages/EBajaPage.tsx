@@ -16,7 +16,7 @@ export default function EBajaPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.45 }}
-      className="relative overflow-hidden bg-black text-white"
+      className="relative overflow-hidden bg-transparent text-white"
     >
       <Helmet>
         <title>EBaja | MITS Motorsports</title>
@@ -25,14 +25,6 @@ export default function EBajaPage() {
           content="EBaja by MITS Motorsports – electric off-road engineering, team, and technical specifications."
         />
       </Helmet>
-
-      <div className="pointer-events-none fixed inset-0 z-0 opacity-50">
-        <div className="absolute left-8 top-8 h-60 w-60 rotate-45 border border-red-700/50" />
-        <div className="absolute right-10 top-24 h-72 w-72 rotate-12 border border-red-700/40" />
-        <div className="absolute bottom-8 left-1/3 h-56 w-56 -rotate-12 border border-red-700/45" />
-        <div className="absolute bottom-20 right-1/4 h-64 w-64 rotate-45 border border-red-700/40" />
-        <div className="absolute left-1/2 top-0 h-full w-px bg-gradient-to-b from-transparent via-red-700/40 to-transparent" />
-      </div>
 
       <div className="relative z-10">
         <ProjectHero

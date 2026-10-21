@@ -16,7 +16,7 @@ export default function AethonPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.45 }}
-      className="relative overflow-hidden bg-black text-white"
+      className="relative overflow-hidden bg-transparent text-white"
     >
       <Helmet>
         <title>Aethon | MITS Motorsports</title>
@@ -25,14 +25,6 @@ export default function AethonPage() {
           content="Aethon by MITS Motorsports – engineering, design, team, and technical specifications."
         />
       </Helmet>
-
-      <div className="pointer-events-none fixed inset-0 z-0 opacity-50">
-        <div className="absolute left-10 top-10 h-64 w-64 rotate-45 border border-red-700/50" />
-        <div className="absolute right-12 top-20 h-80 w-80 rotate-12 border border-red-700/40" />
-        <div className="absolute bottom-10 left-1/4 h-60 w-60 -rotate-12 border border-red-700/45" />
-        <div className="absolute bottom-16 right-1/3 h-72 w-72 rotate-45 border border-red-700/40" />
-        <div className="absolute left-1/2 top-0 h-full w-px bg-gradient-to-b from-transparent via-red-700/40 to-transparent" />
-      </div>
 
       <div className="relative z-10">
         <ProjectHero

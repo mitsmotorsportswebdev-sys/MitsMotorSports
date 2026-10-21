@@ -20,12 +20,15 @@ import PublicProjectsPage from './pages/ProjectsPage'
 import SponsorsPage from './pages/SponsorsPage'
 import TeamPage from './pages/TeamPage'
 import EventDetailsPage from './pages/EventDetailsPage'
+import ScrollManager from './components/layout/ScrollManager'
 
 const futureRoutes = ['/contact', '/join-us']
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <ScrollManager />
+      <Routes>
       <Route path="/admin/login" element={getUser()?.role === 'admin' ? <Navigate to="/admin" replace /> : <AdminLoginPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
@@ -55,6 +58,7 @@ export default function App() {
         {futureRoutes.map((path) => <Route key={path} path={path} element={<PagePlaceholder />} />)}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
-    </Routes>
+      </Routes>
+    </>
   )
 }

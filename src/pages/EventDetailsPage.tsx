@@ -61,7 +61,7 @@ function EventHero({ event, onRegister }: { event: EventData; onRegister: () => 
 function EventOverview({ event, onRegister }: { event: EventData; onRegister: () => void }) {
   const cards = [['DATE', event.date], ['TIME', event.time], ['VENUE', event.venue], ['EVENT TYPE', event.eventType], ['ELIGIBILITY', event.eligibility], ['ENTRY FEE', event.entryFee]]
   return <section className="event-section event-overview">
-    <SectionHeading eyebrow="At a glance / 01" title="The details that matter." />
+    <SectionHeading eyebrow="At a glance / 01" title="The details that mat ter." />
     <div className="event-info-grid">{cards.map(([label, value]) => <div className="event-info-card" key={label}><span>{label}</span><strong>{value}</strong></div>)}</div>
     <button className="button-outline event-secondary-cta" onClick={onRegister}>Secure your spot <span aria-hidden="true">↗</span></button>
   </section>

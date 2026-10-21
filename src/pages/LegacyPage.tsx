@@ -76,7 +76,7 @@ export default function LegacyPage() {
 
   const scrollToEntry = (id: string) => { setActiveEntry(id); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
 
-  return <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative isolate overflow-hidden bg-black text-white">
+  return <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative isolate overflow-hidden bg-transparent text-white">
     <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:linear-gradient(115deg,transparent_0%,transparent_58%,rgba(153,27,27,.16)_58%,transparent_59%),linear-gradient(rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.025)_1px,transparent_1px)] [background-size:auto,44px_44px,44px_44px]" />
     <section className="relative flex min-h-[calc(100svh-5rem)] items-end border-b border-white/10 px-5 pb-14 pt-32 sm:px-10 lg:px-16 lg:pb-20">
       <div className="absolute right-0 top-0 h-full w-1/3 border-l border-white/5 bg-red-950/[.08] [clip-path:polygon(38%_0,100%_0,100%_100%,0_100%)]" />

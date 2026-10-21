@@ -48,10 +48,8 @@ export default function AboutPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.45 }}
-      className="about-page relative isolate overflow-hidden bg-[#070707] text-white"
+      className="about-page relative isolate overflow-hidden bg-transparent text-white"
     >
-      <div className="racing-grid" aria-hidden="true" />
-      <div className="section-lines" aria-hidden="true" />
       <div className="about-rail about-rail-one" aria-hidden="true" />
       <div className="about-rail about-rail-two" aria-hidden="true" />
 
