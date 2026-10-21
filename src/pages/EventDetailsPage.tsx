@@ -92,7 +92,7 @@ function Field({ label, name, value, error, onChange, type = 'text', placeholder
   return <div className="event-field"><label htmlFor={name}>{label} *</label><input id={name} name={name} type={type} value={value} placeholder={placeholder} onChange={(event) => onChange(name, event.target.value)} aria-invalid={Boolean(error)} aria-describedby={error ? `${name}-error` : undefined} />{error && <span className="event-error" id={`${name}-error`}>{error}</span>}</div>
 }
 
-function RegistrationForm({ event, onComplete }: { event: EventData; onComplete: (registration: MockRegistration) => void }) {
+function RegistrationForm({ onComplete }: { onComplete: (registration: MockRegistration) => void }) {
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitting, setSubmitting] = useState(false)
@@ -150,7 +150,7 @@ export default function EventDetailsPage() {
       <Venue event={event} />
       <section className="event-registration-section" ref={registrationRef}>
         <div className="registration-intro"><p className="event-kicker">Ready to join? / 06</p><h2>Secure your place.</h2><p>Bring your curiosity, your team and your appetite for speed.</p><div className="registration-note"><Users /> Frontend registration only. No payment is collected.</div></div>
-        {event.registrationStatus === 'closed' ? <div className="event-closed"><X /><h3>Registration closed</h3><p>Registration for this event is no longer available.</p></div> : registration ? <RegistrationSuccess event={event} registration={registration} onBack={() => { setRegistration(undefined); scrollToRegistration() }} /> : <RegistrationForm event={event} onComplete={setRegistration} />}
+        {event.registrationStatus === 'closed' ? <div className="event-closed"><X /><h3>Registration closed</h3><p>Registration for this event is no longer available.</p></div> : registration ? <RegistrationSuccess event={event} registration={registration} onBack={() => { setRegistration(undefined); scrollToRegistration() }} /> : <RegistrationForm onComplete={setRegistration} />}
       </section>
     </main>
   </motion.div>

@@ -1,4 +1,4 @@
-import { Award, Cpu, Handshake, Wrench } from 'lucide-react'
+import { Cpu, Handshake, Wrench } from 'lucide-react'
 
 export type HomeImage = {
   imageUrl: string

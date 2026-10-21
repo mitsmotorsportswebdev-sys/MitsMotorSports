@@ -24,6 +24,8 @@ Public reads use `GET /api/home`, `/about`, `/projects`, `/team`, `/alumni`,
 Authenticated writes use:
 
 - `POST /api/admin/login`
+- `GET /api/admin/session`
+- `POST /api/admin/password`
 - `PUT /api/admin/home`
 - `PUT /api/admin/about`
 - `POST /api/admin/projects`
@@ -39,8 +41,9 @@ Set `VITE_API_URL` for the browser-facing API base URL. The example development
 value is `http://localhost:5000/api`. Do not put JWT secrets, database
 credentials, or admin passwords in `VITE_*` variables.
 
-The backend still needs its server-side variables from `.env.example`, including
-`MONGODB_URI`, `JWT_SECRET`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`.
+The backend uses the server-side variables in `.env.example`. The admin is
+created privately with `npm run setup-admin` and its password is reset with
+`npm run reset-admin-password`; neither operation has a public API route.
 
 ## Implemented
 
@@ -70,9 +73,10 @@ endpoints before edit/delete controls are enabled.
 ## Local development
 
 1. Start MongoDB and configure the server environment.
-2. Start the API with `npm run server`.
+2. Start the API separately at the URL configured by `VITE_API_URL`.
 3. Start the Vite app with `npm run dev`.
 4. Visit `http://localhost:5173/admin/login`.
 
-The backend's `POST /api/admin/seed-admin` route can create the configured
-development admin. It should not be treated as a production provisioning flow.
+Run `npm run setup-admin` once on the server to create the configured admin.
+The command prompts for a password and refuses to run when an admin already
+exists. Run `npm run reset-admin-password` to replace the existing password.

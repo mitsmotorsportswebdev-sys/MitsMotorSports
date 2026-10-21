@@ -1,19 +1,12 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Activity, CarFront, FileText, Images, LayoutDashboard, LogOut, Menu, PanelLeftClose, Settings, Users, X } from 'lucide-react'
+import { LayoutDashboard, LockKeyhole, LogOut, Menu, PanelLeftClose, X } from 'lucide-react'
 import { clearAuth, getUser } from '../services/auth'
 import '../styles/admin.css'
 
 const navigation = [
   { label: 'Overview', path: '/admin', icon: LayoutDashboard, end: true },
-  { label: 'Home', path: '/admin/home', icon: CarFront },
-  { label: 'About', path: '/admin/about', icon: FileText },
-  { label: 'Projects', path: '/admin/projects', icon: Settings },
-  { label: 'Team', path: '/admin/team', icon: Users },
-  { label: 'Alumni', path: '/admin/alumni', icon: Users },
-  { label: 'Sponsors', path: '/admin/sponsors', icon: Activity },
-  { label: 'Gallery', path: '/admin/gallery', icon: Images },
-  { label: 'Legacy', path: '/admin/legacy', icon: FileText },
+  { label: 'Security', path: '/admin/security', icon: LockKeyhole },
 ]
 
 export default function AdminLayout() {
@@ -36,8 +29,7 @@ export default function AdminLayout() {
       {open && <button className="admin-backdrop" aria-label="Close admin navigation" onClick={() => setOpen(false)} />}
       <aside className={`admin-sidebar ${open ? 'is-open' : ''}`}>
         <div className="admin-brand">
-          <span className="admin-brand-mark">M</span>
-          <span><strong>MITS</strong><small>Motorsports CMS</small></span>
+          <img className="admin-brand-logo" src="/images/about/faviconLogo.png" alt="MITS Motorsports" />
           <button className="admin-close-button" aria-label="Close admin navigation" onClick={() => setOpen(false)}><X size={18} /></button>
         </div>
         <div className="admin-sidebar-label">Workspace</div>

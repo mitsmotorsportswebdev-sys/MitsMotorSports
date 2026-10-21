@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ArrowRight, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 export type EngineeringSectionProps = {
   title: string
@@ -28,7 +28,7 @@ export default function EngineeringSection({ title, description, bullets }: Engi
         <p className="mt-6 max-w-3xl text-base leading-7 text-zinc-300">{description}</p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {bullets.map((bullet, index) => (
+          {bullets.map((bullet) => (
             <div key={`${title}-${bullet}`} className="flex items-start gap-3 border border-white/10 bg-[#121214] p-4">
               <div className="mt-1 flex h-6 w-6 items-center justify-center border border-red-600 bg-red-900/25 text-red-400">
                 <Check className="h-3.5 w-3.5" />

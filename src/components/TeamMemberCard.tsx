@@ -4,7 +4,7 @@ import type { TeamMember } from '../data/team'
 
 const clipPath = 'polygon(0 5%, 5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%)'
 
-export default function TeamMemberCard({ member, featured = false }: { member: TeamMember; featured?: boolean }) {
+export default function TeamMemberCard({ member }: { member: TeamMember }) {
   const hasImage = member.imageUrl.trim().length > 0
 
   return (

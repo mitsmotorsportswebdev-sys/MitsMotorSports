@@ -2,10 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import AdminLayout from './admin/components/AdminLayout'
 import ProtectedRoute from './admin/components/ProtectedRoute'
 import AdminLoginPage from './admin/pages/AdminLoginPage'
-import CollectionPage from './admin/pages/CollectionPage'
-import ContentEditorPage from './admin/pages/ContentEditorPage'
+import ChangePasswordPage from './admin/pages/ChangePasswordPage'
 import DashboardPage from './admin/pages/DashboardPage'
-import ProjectsPage from './admin/pages/ProjectsPage'
 import { getUser } from './admin/services/auth'
 import SiteLayout from './layouts/SiteLayout'
 import AboutPage from './pages/AboutPage'
@@ -33,14 +31,15 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<DashboardPage />} />
-          <Route path="/admin/home" element={<ContentEditorPage kind="home" />} />
-          <Route path="/admin/about" element={<ContentEditorPage kind="about" />} />
-          <Route path="/admin/projects" element={<ProjectsPage />} />
-          <Route path="/admin/team" element={<CollectionPage kind="team" />} />
-          <Route path="/admin/alumni" element={<CollectionPage kind="alumni" />} />
-          <Route path="/admin/sponsors" element={<CollectionPage kind="sponsors" />} />
-          <Route path="/admin/gallery" element={<CollectionPage kind="gallery" />} />
-          <Route path="/admin/legacy" element={<CollectionPage kind="legacy" />} />
+          <Route path="/admin/security" element={<ChangePasswordPage />} />
+          <Route path="/admin/home" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/about" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/projects" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/team" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/alumni" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/sponsors" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/gallery" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/legacy" element={<Navigate to="/admin" replace />} />
         </Route>
       </Route>
       <Route element={<SiteLayout />}>

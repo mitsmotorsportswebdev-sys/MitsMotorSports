@@ -77,6 +77,11 @@ export const adminApi = {
       body: JSON.stringify({ email, password }),
     })
   },
+  getSession: () => request<{ user: AdminUser }>('/admin/session', {}, true),
+  changePassword: (currentPassword: string, newPassword: string) => request<void>('/admin/password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  }, true),
   getHome: () => request<HomeContent | null>('/home'),
   updateHome: (content: Partial<HomeContent>) => request<HomeContent>('/admin/home', { method: 'PUT', body: JSON.stringify(content) }, true),
   getAbout: () => request<AboutContent | null>('/about'),
