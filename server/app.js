@@ -96,20 +96,7 @@ export function createApp({ Admin, config, EventModel = Event, RegistrationModel
   mountEventRoutes(app, {
     Event: EventModel,
     Registration: RegistrationModel,
-    config,
-    authenticate,
-    verifyTurnstile: async (token, remoteip) => {
-      try {
-        const result = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ secret: config.turnstileSecretKey, response: token, remoteip }),
-        })
-        return result.ok && (await result.json()).success === true
-      } catch {
-        return false
-      }
-    },
+    config, authenticate,
   })
 
   return app

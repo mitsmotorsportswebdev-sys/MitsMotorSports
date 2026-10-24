@@ -5,7 +5,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 import logo from '../../assets/images/faviconLogo (1).jpg'
 
 const navigation = [
-  { label: 'Home', to: '/' }, { label: 'About', to: '/about' }, { label: 'Events', to: '/events/annual-motorsport-meet' }, { label: 'Sponsors', to: '/sponsors' },
+  { label: 'Home', to: '/' }, { label: 'About', to: '/about' }, { label: 'Events', to: '/events' }, { label: 'Sponsors', to: '/sponsors' },
   { label: 'Gallery', to: '/gallery' }, { label: 'Legacy', to: '/legacy' }, { label: 'Alumni', to: '/alumni' },
 ]
 const projectLinks = [{ label: 'Aethon V4', to: '/projects/aethon' }, { label: 'E-Baja', to: '/projects/ebaja' }]

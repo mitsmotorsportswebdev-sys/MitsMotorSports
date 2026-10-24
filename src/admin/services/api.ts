@@ -1,9 +1,11 @@
 import { clearAuth, getToken } from './auth'
 import type {
   AboutContent,
+  AdminEvent,
   AdminUser,
   ApiEnvelope,
   AuthResponse,
+  EventPayload,
   GalleryItem,
   HomeContent,
   ImageAsset,
@@ -17,11 +19,13 @@ const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').rep
 
 export class ApiError extends Error {
   status: number
+  fields?: Record<string, string[]>
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, fields?: Record<string, string[]>) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.fields = fields
   }
 }
 
@@ -54,7 +58,7 @@ async function request<T>(path: string, init: RequestInit = {}, authenticated = 
     window.location.assign('/admin/login')
   }
   if (!response.ok) {
-    throw new ApiError(payload?.message || getStatusMessage(response.status), response.status)
+    throw new ApiError(payload?.message || getStatusMessage(response.status), response.status, payload?.fields)
   }
   return (payload?.data ?? payload) as T
 }
@@ -93,6 +97,15 @@ export const adminApi = {
   getSponsors: () => request<Sponsor[]>('/sponsors'),
   getGallery: () => request<GalleryItem[]>('/gallery'),
   getLegacy: () => request<LegacyItem[]>('/legacy'),
+  getEvents: () => request<AdminEvent[]>('/admin/events', {}, true),
+  createEvent: (event: EventPayload) => request<AdminEvent>('/admin/events', {
+    method: 'POST',
+    body: JSON.stringify(event),
+  }, true),
+  updateEvent: (id: string, event: Omit<EventPayload, 'slug'>) => request<AdminEvent & { warning?: string }>(`/admin/events/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(event),
+  }, true),
   uploadImage: async (page: string, file: File) => {
     const body = new FormData()
     body.append('image', file)

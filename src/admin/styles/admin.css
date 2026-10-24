@@ -503,6 +503,248 @@
 .admin-form-modal h3 {
     margin-bottom: 25px;
 }
+.events-admin-page .admin-page-intro {
+    margin-bottom: 22px;
+}
+.admin-success {
+    color: #75c58f;
+    background: #13251a;
+}
+.admin-inline-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 0;
+    background: transparent;
+    color: #b91c1c;
+    font: 600 11px "Poppins", sans-serif;
+    cursor: pointer;
+}
+.admin-notice .admin-inline-button {
+    margin-left: 12px;
+}
+.event-form {
+    position: relative;
+    margin-bottom: 28px;
+}
+.event-wizard {
+    position: relative;
+    margin-bottom: 28px;
+}
+.event-wizard > .admin-icon-button {
+    top: 21px;
+    right: 21px;
+}
+.event-wizard-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 25px;
+}
+.event-wizard-header > span {
+    color: #b91c1c;
+    font: 600 11px "Poppins", sans-serif;
+}
+.event-wizard h4 {
+    margin: 0 0 22px;
+    color: #fff;
+    font: 600 15px "Poppins", sans-serif;
+}
+.event-image-preview {
+    display: grid;
+    min-height: 190px;
+    margin: 8px 0 20px;
+    place-items: center;
+    overflow: hidden;
+    background: #151515;
+    color: #8b9692;
+    font-size: 11px;
+}
+.event-image-preview img {
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+}
+.event-review {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid #292929;
+}
+.event-review div {
+    display: grid;
+    grid-template-columns: minmax(120px, .35fr) 1fr;
+    gap: 18px;
+    padding: 13px 0;
+    border-bottom: 1px solid #292929;
+}
+.event-review dt {
+    color: #8b9692;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+.event-review dd {
+    margin: 0;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+.event-wizard-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+.admin-button-secondary {
+    background: #292929;
+}
+.admin-button-secondary:hover {
+    background: #3f3f46;
+}
+.event-edit-button {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    justify-self: end;
+}
+.event-form > .admin-icon-button {
+    top: 21px;
+    right: 21px;
+}
+.event-form h3 {
+    margin-bottom: 25px;
+}
+.event-form small {
+    color: #8b9692;
+    font-size: 10px;
+    font-weight: 400;
+}
+.admin-field-errors {
+    margin-bottom: 18px;
+    padding: 11px 13px;
+    border-left: 3px solid #b44735;
+    background: #251613;
+    color: #d28e81;
+    font-size: 11px;
+    line-height: 1.7;
+}
+.admin-field-errors strong {
+    display: block;
+    color: #fff;
+}
+.event-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 9px;
+    color: #65716c;
+    font-size: 11px;
+    font-weight: 600;
+}
+.event-list-editor, .event-schedule-editor {
+    margin-bottom: 18px;
+}
+.event-list-row, .event-schedule-row {
+    display: grid;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.event-list-row {
+    grid-template-columns: 1fr 30px;
+}
+.event-schedule-row {
+    grid-template-columns: 0.8fr 1fr 1.4fr 30px;
+}
+.event-list-row input, .event-schedule-row input {
+    min-width: 0;
+    width: 100%;
+    border: 1px solid #dce3df;
+    background: #151515;
+    padding: 11px 12px;
+    color: #1c2425;
+    font: 13px "Inter", sans-serif;
+    outline: none;
+}
+.event-list-row input:focus, .event-schedule-row input:focus {
+    border-color: #b91c1c;
+}
+.event-remove-button {
+    position: static;
+    color: #b44735;
+    background: transparent;
+}
+.event-toggle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.event-wizard-actions {
+    flex-direction: column-reverse;
+}
+.event-wizard-actions .admin-button,
+.event-wizard-actions .admin-submit {
+    width: 100%;
+}
+.event-review div {
+    grid-template-columns: 1fr;
+    gap: 6px;
+}
+.event-list {
+    display: grid;
+    gap: 12px;
+}
+.event-list-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(200px, 1.5fr) auto;
+    gap: 18px;
+    padding: 20px;
+    border: 1px solid #e0e5e2;
+    background: #111;
+}
+.event-list-main h3 {
+    margin: 5px 0 6px;
+    color: #fff;
+    font: 600 17px "Poppins", sans-serif;
+}
+.event-list-main p {
+    margin: 0;
+    color: #78827e;
+    font-size: 12px;
+}
+.event-list-item .admin-status {
+    position: static;
+    align-self: start;
+}
+.event-list-item .event-published {
+    color: #75c58f;
+}
+.event-metrics {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    padding-top: 13px;
+    border-top: 1px solid #292929;
+    color: #c4c4c4;
+    font-size: 11px;
+}
+.event-metrics span {
+    display: grid;
+    gap: 3px;
+}
+.event-metrics b {
+    color: #8b9692;
+    font-size: 9px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
 .admin-login-page {
     min-height: 100vh;
     background: #000;
@@ -673,6 +915,11 @@
     .admin-card-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+    .event-edit-button {
+        grid-column: 1;
+        grid-row: auto;
+        justify-self: start;
+    }
 }
 @media (max-width: 760px) {
     .admin-sidebar {
@@ -767,6 +1014,21 @@
     .admin-field-grid {
         grid-template-columns: 1fr;
     }
+    .event-schedule-row {
+        grid-template-columns: 1fr 1fr;
+    }
+    .event-schedule-row input:nth-child(3) {
+        grid-column: 1 / -1;
+    }
+    .event-schedule-row .event-remove-button {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+    }
+    .event-toggle-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
     .admin-panel {
         padding: 20px;
     }
@@ -775,6 +1037,14 @@
     }
     .admin-submit {
         width: 100%;
+    }
+    .event-list-item {
+        grid-template-columns: 1fr;
+    }
+    .event-list-item .admin-status {
+        position: absolute;
+        top: 15px;
+        right: 15px;
     }
 }
 

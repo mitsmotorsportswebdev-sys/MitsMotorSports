@@ -1,117 +1,103 @@
 # Events API
 
-All dates are stored and returned as UTC-compatible ISO values where applicable.
-The `eventDate` field is a calendar date (`YYYY-MM-DD`) and is displayed in
-India time by the frontend. The existing `annual-motorsport-meet` id becomes the
-immutable slug `annual-motorsport-meet`.
+Successful responses use `{ "success": true, "data": ... }`; errors use
+`{ "success": false, "message": "...", "fields": ... }`. Event IDs are MongoDB
+`_id` values. Admin responses send `Cache-Control: no-store`.
 
-## Validation limits
+## Event fields
 
-Registration input is strict; unknown fields are rejected.
+Event bodies are strict and contain:
 
-- `fullName`: 1-120 characters
-- `email`: valid email, maximum 254 characters; trimmed and lowercased
-- `phone`: optional `+`, then digits/spaces/hyphens; 10-20 characters
-- `college`: 1-160 characters
-- `teamName`: maximum 160 characters
-- `participantType`: `Individual`, `Team`, or `Club/Organization`
-- `participantCount`: whole number from 1 through 100
-- `experience`: maximum 120 characters
-- `requirements`: maximum 1000 characters
-- `termsAccepted`: must be `true`
-- `turnstileToken`: 1-2048 characters
+- `title` (1-180), `description` (1-3000), `image`, `eventDate`, `time` (1-80)
+  and `venue` (1-180)
+- `image` is either an `http://` or `https://` URL, or a site path beginning
+  with one `/`
+- `allowedYears`: one to four unique values from 1 through 4
+- `seatLimit`: integer from 1 through 100000
+- `closingAt`: no later than 23:59:59.999 IST on `eventDate`
+- `published`: boolean, default `false`
+- `participation`: `individual` or `group`
+- `minTeamSize` and `maxTeamSize`: required only for groups, from 2 through
+  20, with `maxTeamSize >= minTeamSize`
+- `collegeOnly`: boolean, default `true`
 
-Event text fields are capped between 40 and 3000 characters according to field
-purpose; list fields contain at most 100 entries and each entry is at most 500
-characters. `seatLimit` is a whole number from 1 through 100,000. `closingAt`
-must not be later than the end of `eventDate` in Asia/Kolkata.
+## Registration fields
 
-## Response and error format
+Registration validation is strict and is shared by public registration and
+admin editing:
 
-Success responses use `{ "success": true, "data": ... }`. Errors use:
+- `fullName`, `email`, `mobile`, `department`, `year`, and `collegeId`
+- `collegeName` is required for non-college-only events
+- `teamName` and `members` are required/allowed only for group events
+- `mobile` accepts an Indian 10-digit number with optional `+91` and stores
+  only the final 10 digits
+- College-only events require an `@mgits.ac.in` email, one of the configured
+  departments, and a college ID matching `^\d{2}[A-Z]{1,6}\d{1,4}$`
+- Non-college-only events accept free-text department, college ID, and college
+  name within their limits
+- Every leader and member year must be in the event's `allowedYears`
+- A group cannot repeat a college ID within one registration
 
-```json
-{ "success": false, "message": "Human-readable message", "fields": { "email": ["..."] } }
-```
+`website` is the only accepted honeypot field. A non-empty value returns a
+normal-looking `201` response without saving.
 
-`fields` is present for validation errors and is safe for form display. Public
-responses never include registrations.
+## Registration state and seats
+
+Seats are computed from the sum of `headcount` across all registrations;
+pending and approved entries both consume seats. State is:
+
+- `ended`: the India-time event day has finished
+- `closed`: unpublished, past `closingAt`, or fewer than the minimum entry size
+  seats remain
+- `open`: otherwise
+
+No counters are stored on events. Concurrent submissions use the final
+last-seat check and remove an entry that would exceed the limit.
 
 ## Public endpoints
 
-### `GET /api/events`
+- `GET /api/events` — published, not-ended events sorted by date
+- `GET /api/events/:id` — a published event, including ended events
+- `POST /api/events/:id/registrations` — rate-limited per IP
 
-Public. Returns upcoming published events with public event fields, `seatsLeft`,
-`closingAt`, and computed `registrationState` (`open`, `full-waiting-list`,
-`closed`, or `ended`). Past events are excluded.
+The registration limiter uses `EVENTS_RATE_LIMIT_WINDOW_MS` (default
+`600000`) and `EVENTS_RATE_LIMIT_MAX` (default `10`). The response contains
+the registration MongoDB ID and its `pending`/`approved` status.
 
-### `GET /api/events/:slug`
+## Admin endpoints
 
-Public. Returns one published event. Past events are returned with `ended: true`.
-Drafts and unknown slugs return `404`.
+All require the existing admin bearer authentication:
 
-### `POST /api/events/:slug/registrations`
+- `GET /api/admin/events`
+- `POST /api/admin/events`
+- `PATCH /api/admin/events/:id`
+- `DELETE /api/admin/events/:id` with `{ "confirm": true }`
+- `GET /api/admin/events/:id/registrations`
+- `PATCH /api/admin/registrations/:id`
+- `POST /api/admin/registrations/:id/approve`
+- `POST /api/admin/events/:id/approve-all`
+- `DELETE /api/admin/registrations/:id` with `{ "confirm": true }`
+- `GET /api/admin/events/:id/export`
 
-Public, Turnstile-protected, and rate-limited. Accepts the registration fields
-listed above. Returns only:
+The registration list supports `?search=` across name, email, mobile, and
+college ID, plus `?status=pending|approved`.
 
-```json
-{ "registrationId": "MMS-0042", "status": "confirmed" }
-```
+Exports contain approved entries only by default. With
+`?includePending=true`, all entries are exported with a Status column. There
+is one row per student, with the leader first and members after the leader.
+All cells are protected against spreadsheet formula injection.
 
-The server rechecks publication, event date, registration switch, closing time,
-duplicate email, and seat availability. Seat allocation uses an atomic
-conditional event update, so simultaneous requests cannot oversell seats. If
-registration insertion fails after a confirmed reservation, the server
-decrements the counter. A process crash between those operations can leave a
-temporary counter drift; run the authenticated reconcile endpoint during
-maintenance to recount confirmed records and repair it.
+## Database reset
 
-## Admin event endpoints
+Before testing against an existing database, run `npm run reset-events -- --yes`
+manually. The command prints the database name, refuses URI names that look
+like production, and deletes the events and registrations collections. This
+deletes all event data and is never run automatically.
 
-All require the existing admin Bearer token and send no-store responses.
+The old import script is intentionally removed; events are created from the
+admin panel.
 
-- `GET /api/admin/events` — list drafts, upcoming, and past events with counts
-- `POST /api/admin/events` — create an event; slug is required and immutable
-- `PATCH /api/admin/events/:id` — edit all event fields except slug
-- `DELETE /api/admin/events/:id` — delete event and registrations; body requires `{ "confirm": true }`
-- `GET /api/admin/events/:id/registrations` — list registrations; supports `status` (`confirmed`, `waitlist`, `needs-contacting`, `cancelled`) and `search`
-- `DELETE /api/admin/events/:id/registrations` — permanently delete all registrations; body requires confirmation
-- `POST /api/admin/events/:id/reconcile` — recount confirmed registrations and repair the cached counter
-- `GET /api/admin/events/:id/export` — export all registrations as an Excel file
-- `GET /api/admin/needs-contacting/count` — count confirmed registrations not yet contacted
+## Stage 1 scope
 
-## Admin registration endpoints
-
-- `PATCH /api/admin/registrations/:id` — correct registration details
-- `POST /api/admin/registrations/:id/cancel` — cancel and promote the earliest waitlisted registration
-- `DELETE /api/admin/registrations/:id` — permanently delete; body requires confirmation
-- `POST /api/admin/registrations/:id/contacted` — mark contacted
-- `POST /api/admin/registrations/:id/paid` — body `{ "paid": true|false }`
-
-Registration records contain status, readable registration ID, timestamps,
-contacted/paid fields, and admin-only duplicate phone/name-college flags.
-Cancelled emails may register again. Increasing the seat limit promotes the
-earliest waitlisted records; lowering it never removes confirmed registrations.
-When lowering below the current confirmed count, the update succeeds and
-returns a `warning` field; no confirmed registration is removed.
-
-## Initial event import
-
-The existing local event content can be imported once, interactively, with:
-
-```text
-npm run import-events
-```
-
-The command requires typing `IMPORT`, refuses to overwrite an existing slug,
-and never runs automatically.
-
-## Environment variables
-
-The server uses `TURNSTILE_SECRET_KEY`. The browser must use
-`VITE_TURNSTILE_SITE_KEY`. Both are required by the respective runtime. Use
-Cloudflare's official Turnstile test keys only in development/test
-configuration; use placeholders in committed examples. There is no
-`NODE_ENV`-based bypass: if the server secret is absent, the server refuses to
-start, and injected test verifiers are only available to tests.
+Frontend code is intentionally unchanged. The current public form will not
+work with this backend until Stage 3 updates the frontend payloads and routes.

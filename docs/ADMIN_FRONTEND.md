@@ -7,6 +7,7 @@ create a second frontend project.
 
 - `/admin/login` - admin sign-in
 - `/admin` - dashboard and backend connection status
+- `/admin/events` - event inventory and event creation
 - `/admin/home` - homepage singleton editor
 - `/admin/about` - about singleton editor
 - `/admin/projects` - project list and project creation
@@ -29,6 +30,8 @@ Authenticated writes use:
 - `PUT /api/admin/home`
 - `PUT /api/admin/about`
 - `POST /api/admin/projects`
+- `GET /api/admin/events`
+- `POST /api/admin/events`
 - `POST /api/admin/upload/{home|about|projects|team|alumni|sponsors|gallery|legacy}`
 
 The API client adds the Bearer token centrally and clears the session on a `401`
@@ -53,6 +56,10 @@ created privately with `npm run setup-admin` and its password is reset with
 - Real backend connection indicator
 - Home and About editors using only backend-supported fields
 - Project creation using the existing backend contract
+- Event inventory and creation using the authenticated admin event endpoints,
+  including draft/published and registration-open/closed settings
+- Event editing using the complete backend update payload while preserving the
+  immutable slug and displaying seat-limit warnings
 - Shared image uploader with drag/drop, preview, JPEG/PNG/WebP validation, and 5
   MB limit
 - Loading, empty, error, and save feedback states

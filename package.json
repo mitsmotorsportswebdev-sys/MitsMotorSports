@@ -10,9 +10,9 @@
     "test": "node --test",
     "server": "node server/index.js",
     "setup-admin": "node server/setup-admin.js",
-    "reset-admin-password": "node server/reset-admin-password.js"
-    ,"import-events": "node server/import-events.js",
-    "test:events:integration": "node --test server/events.integration.mjs"
+    "reset-admin-password": "node server/reset-admin-password.js",
+    "reset-events": "node server/reset-events.js",
+    "test:events:integration": "node --env-file=.env --test server/events.integration.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -42,5 +42,10 @@
     "prettier": "^3.9.6",
     "typescript": "^7.0.2",
     "vite": "^8.3.0"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "11.1.1"
+    }
   }
 }

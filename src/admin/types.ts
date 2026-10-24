@@ -80,6 +80,51 @@ export interface LegacyItem {
   order: number
 }
 
+export interface EventScheduleItem {
+  time: string
+  title: string
+  description: string
+}
+
+export interface EventPayload {
+  slug: string
+  category: string
+  title: string
+  tagline: string
+  description: string
+  image: string
+  eventDate: string
+  time: string
+  venue: string
+  location: string
+  address: string
+  entryFee: string
+  eventType: string
+  eligibility: string
+  highlights: string[]
+  rules: string[]
+  eligibilityDetails: string[]
+  schedule: EventScheduleItem[]
+  venueDescription: string
+  seatLimit: number
+  closingAt: string
+  registrationOpen: boolean
+  published: boolean
+}
+
+export interface AdminEvent extends Omit<EventPayload, 'closingAt'> {
+  _id?: string
+  id?: string
+  date?: string
+  closingAt: string
+  seatsLeft?: number
+  registrationState?: 'open' | 'full-waiting-list' | 'closed' | 'ended'
+  ended?: boolean
+  confirmedCount: number
+  waitlistCount: number
+  needsContactingCount: number
+}
+
 export interface AuthResponse {
   token: string
   user: AdminUser
@@ -89,4 +134,5 @@ export interface ApiEnvelope<T> {
   success: boolean
   data: T
   message?: string
+  fields?: Record<string, string[]>
 }

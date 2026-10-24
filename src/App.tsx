@@ -4,6 +4,7 @@ import ProtectedRoute from './admin/components/ProtectedRoute'
 import AdminLoginPage from './admin/pages/AdminLoginPage'
 import ChangePasswordPage from './admin/pages/ChangePasswordPage'
 import DashboardPage from './admin/pages/DashboardPage'
+import EventsPage from './admin/pages/EventsPage'
 import { getUser } from './admin/services/auth'
 import SiteLayout from './layouts/SiteLayout'
 import AboutPage from './pages/AboutPage'
@@ -17,6 +18,7 @@ import PagePlaceholder from './pages/PagePlaceholder'
 import PublicProjectsPage from './pages/ProjectsPage'
 import SponsorsPage from './pages/SponsorsPage'
 import TeamPage from './pages/TeamPage'
+import PublicEventsPage from './pages/EventsPage'
 import EventDetailsPage from './pages/EventDetailsPage'
 import ScrollManager from './components/layout/ScrollManager'
 
@@ -31,6 +33,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<DashboardPage />} />
+          <Route path="/admin/events" element={<EventsPage />} />
           <Route path="/admin/security" element={<ChangePasswordPage />} />
           <Route path="/admin/home" element={<Navigate to="/admin" replace />} />
           <Route path="/admin/about" element={<Navigate to="/admin" replace />} />
@@ -53,6 +56,7 @@ export default function App() {
         <Route path="/projects/aethon" element={<AethonPage />} />
         <Route path="/projects/ebaja" element={<EBajaPage />} />
         <Route path="/team" element={<TeamPage />} />
+        <Route path="/events" element={<PublicEventsPage />} />
         <Route path="/events/:eventId" element={<EventDetailsPage />} />
         {futureRoutes.map((path) => <Route key={path} path={path} element={<PagePlaceholder />} />)}
         <Route path="*" element={<Navigate to="/" replace />} />
