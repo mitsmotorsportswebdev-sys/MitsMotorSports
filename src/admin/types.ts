@@ -71,13 +71,29 @@ export interface GalleryItem {
   order: number
 }
 
-export interface LegacyItem {
-  _id: string
+export interface LegacyAchievement {
   title: string
   description: string
-  image?: ImageAsset
-  isPublished: boolean
-  order: number
+}
+
+export interface LegacyPhoto {
+  imageUrl: string | null
+  alt: string
+  caption: string
+}
+
+export interface LegacyItem {
+  id: string
+  year: number
+  season: string
+  competition: string
+  location: string
+  result: string
+  achievements: LegacyAchievement[]
+  photos: LegacyPhoto[]
+  visible: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface EventScheduleItem {

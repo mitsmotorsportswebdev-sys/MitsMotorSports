@@ -104,11 +104,7 @@ export default function CrewCard({ name, role, image, project = "aethon", cutout
               <stop offset="1" style={{ stopColor: "var(--accent2)" }} />
             </linearGradient>
           </defs>
-          <line x1="213" y1="80" x2="213" y2="182" stroke="#fff" strokeOpacity=".55" strokeWidth="2" />
-          <path d="M40 330 H190 Q213 330 213 307 V288" fill="none" stroke="#fff" strokeOpacity=".5" strokeWidth="2" />
-          <path d="M160 325 l7 5 -7 5 M168 325 l7 5 -7 5" fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="1.6" />
           <line x1="625" y1="24" x2="625" y2="386" stroke="#fff" strokeOpacity=".5" strokeWidth="1.6" />
-          <path d="M620 281 l5 7 5 -7" fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="1.6" />
           <path d="M60 641 L644 641 Q652 641 652 649 L652 706 L517 834 L78 834 L60 818 Z" fill="none" stroke="#000" strokeWidth="1.5" strokeOpacity=".35" />
           <path d="M62 132 C62 108 74 99 98 99 L196 99 L268 39 L604 39 L669 112 L669 700 L530 851 L90 851 C70 851 62 840 62 822 Z" fill="none" stroke="#000" strokeWidth="2" strokeOpacity=".45" />
           <path d="M44 118 C44 92 58 81 86 81 L206 81 L282 21 L616 21 L687 99 L687 717 L536 869 L78 869 C52 869 44 858 44 835 Z" fill="none" stroke={`url(#${gid})`} strokeWidth="11" strokeLinejoin="round" />

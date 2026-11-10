@@ -7,6 +7,8 @@ import jwt from 'jsonwebtoken'
 import { z } from 'zod'
 import { mountEventRoutes } from './event-routes.js'
 import { Event, Registration } from './events-model.js'
+import { mountLegacyRoutes } from './legacy-routes.js'
+import { Legacy } from './legacy-model.js'
 import { mountTeamRoutes } from './team-routes.js'
 import { Group, Image, Member, Project } from './team-model.js'
 
@@ -100,6 +102,7 @@ export function createApp({ Admin, config, EventModel = Event, RegistrationModel
     Registration: RegistrationModel,
     config, authenticate,
   })
+  mountLegacyRoutes(app, { LegacyModel: Legacy, ImageModel: Image, authenticate, config })
   mountTeamRoutes(app, { ProjectModel: Project, GroupModel: Group, MemberModel: Member, ImageModel: Image, authenticate, config })
 
   return app

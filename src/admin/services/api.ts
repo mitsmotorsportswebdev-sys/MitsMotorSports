@@ -56,6 +56,8 @@ export type AdminMember = { id: string; name: string; role?: string; extras: str
 export type AdminGroup = { id: string; name: string; order: number; members: AdminMember[] }
 export type AdminProjectSummary = { id: string; slug: string; title: string; tagline: string; heroImageUrl: string | null; memberCount?: number }
 export type AdminProject = AdminProjectSummary & { overview: string; stats: Array<{ label: string; value: string }>; specs: Array<{ label: string; value: string; description?: string; icon?: string }>; sections: Array<{ title: string; description: string; bullets: string[] }>; groups: AdminGroup[] }
+export type LegacyCreate = Omit<LegacyItem, 'id' | 'createdAt' | 'updatedAt' | 'photos'>
+export type LegacyUpdate = Partial<LegacyCreate> & { photos?: Array<{ alt?: string; caption?: string }> }
 
 async function request<T>(path: string, init: RequestInit = {}, authenticated = false): Promise<T> {
   const headers = new Headers(init.headers)
@@ -139,7 +141,22 @@ export const adminApi = {
   getAlumni: () => request<unknown[]>('/alumni'),
   getSponsors: () => request<Sponsor[]>('/sponsors'),
   getGallery: () => request<GalleryItem[]>('/gallery'),
-  getLegacy: () => request<LegacyItem[]>('/legacy'),
+  getLegacy: () => request<LegacyItem[]>('/admin/legacy', {}, true),
+  createLegacy: (entry: LegacyCreate) => request<LegacyItem>('/admin/legacy', {
+    method: 'POST',
+    body: JSON.stringify(entry),
+  }, true),
+  updateLegacy: (id: string, entry: LegacyUpdate) => request<LegacyItem>(`/admin/legacy/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(entry),
+  }, true),
+  deleteLegacy: (id: string) => request<void>(`/admin/legacy/${id}`, { method: 'DELETE' }, true),
+  uploadLegacyPhoto: (id: string, slot: number, file: File) => request<LegacyItem>(`/admin/legacy/${id}/photos/${slot}`, {
+    method: 'POST',
+    body: file,
+    headers: { 'Content-Type': file.type },
+  }, true),
+  deleteLegacyPhoto: (id: string, slot: number) => request<LegacyItem>(`/admin/legacy/${id}/photos/${slot}`, { method: 'DELETE' }, true),
   getEvents: () => request<AdminEvent[]>('/admin/events', {}, true),
   setRegistrationOpen: (id: string, open: boolean) => request<AdminEvent>(`/admin/events/${id}/registration`, {
     method: 'PATCH',

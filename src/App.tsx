@@ -9,6 +9,7 @@ import EventFormPage from './admin/pages/EventFormPage'
 import EventRegistrationsPage from './admin/pages/EventRegistrationsPage'
 import ProjectsAdminPage from './admin/pages/ProjectsAdminPage'
 import ProjectAdminPage from './admin/pages/ProjectAdminPage'
+import LegacyAdminPage from './admin/pages/LegacyAdminPage'
 import { getUser } from './admin/services/auth'
 import SiteLayout from './layouts/SiteLayout'
 import AboutPage from './pages/AboutPage'
@@ -50,7 +51,7 @@ export default function App() {
           <Route path="/admin/alumni" element={<ProjectAdminPage fixedSlug="alumni" />} />
           <Route path="/admin/sponsors" element={<Navigate to="/admin" replace />} />
           <Route path="/admin/gallery" element={<Navigate to="/admin" replace />} />
-          <Route path="/admin/legacy" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/legacy" element={<LegacyAdminPage />} />
         </Route>
       </Route>
       <Route element={<SiteLayout />}>

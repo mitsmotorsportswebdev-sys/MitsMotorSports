@@ -1,7 +1,62 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Award, ArrowDown, CalendarDays, Image as ImageIcon, MapPin, Trophy } from 'lucide-react'
 import { legacyEntries, type LegacyEntry, type LegacyImage } from '../data/legacy'
+import { resolveProjectImageUrl } from '../services/projectService'
+
+type LegacyApiEntry = {
+  id: string
+  year: number
+  season?: string
+  competition: string
+  location?: string
+  result?: string
+  achievements: Array<{ title: string; description?: string }>
+  photos: Array<{ imageUrl: string | null; alt?: string; caption?: string }>
+}
+
+const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '')
+
+function mapApiEntry(entry: LegacyApiEntry): LegacyEntry {
+  return {
+    id: entry.id,
+    year: String(entry.year),
+    season: entry.season || undefined,
+    competition: entry.competition,
+    location: entry.location || undefined,
+    result: entry.result || undefined,
+    achievements: entry.achievements.map((achievement) => ({ title: achievement.title, description: achievement.description || '' })),
+    images: entry.photos.map((photo, index) => ({
+      id: `${entry.id}-photo-${index}`,
+      imageUrl: resolveProjectImageUrl(photo.imageUrl),
+      alt: photo.alt || `${entry.competition} ${entry.year} archive photo`,
+      caption: photo.caption || undefined,
+      displayOrder: index + 1,
+      active: true,
+    })),
+    displayOrder: 0,
+    active: true,
+  }
+}
+
+async function getLegacyEntries(): Promise<LegacyEntry[]> {
+  let response: Response
+  try {
+    response = await fetch(`${apiUrl}/legacy`, { headers: { 'Content-Type': 'application/json' } })
+  } catch {
+    throw new Error('The Legacy service could not be reached.')
+  }
+  let payload: { success?: boolean; data?: LegacyApiEntry[]; message?: string } | null = null
+  try {
+    payload = await response.json()
+  } catch {
+    payload = null
+  }
+  if (!response.ok || !payload?.success || !payload.data) {
+    throw new Error(payload?.message || 'Legacy content could not be loaded.')
+  }
+  return payload.data.map(mapApiEntry)
+}
 
 function LegacyImageSlot({ image, competition }: { image: LegacyImage; competition: string }) {
   const hasImage = image.imageUrl.trim().length > 0
@@ -62,7 +117,15 @@ function LegacyEntryCard({ entry, index }: { entry: LegacyEntry; index: number }
 
 export default function LegacyPage() {
   const [activeEntry, setActiveEntry] = useState('')
-  const entries = useMemo(() => legacyEntries.filter((entry) => entry.active).sort((a, b) => a.displayOrder - b.displayOrder), [])
+  const [entries, setEntries] = useState<LegacyEntry[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getLegacyEntries()
+      .then(setEntries)
+      .catch(() => setEntries(legacyEntries.filter((entry) => entry.active).sort((a, b) => a.displayOrder - b.displayOrder)))
+      .finally(() => setLoading(false))
+  }, [])
 
   useEffect(() => {
     const previousTitle = document.title
@@ -89,7 +152,9 @@ export default function LegacyPage() {
     </section>
     <section className="relative mx-auto max-w-7xl px-5 pb-20 pt-16 sm:px-10 lg:px-16 lg:pt-24" aria-labelledby="timeline-heading">
       <div className="mb-12 flex items-end justify-between gap-5"><div><p className="text-xs font-bold uppercase tracking-[0.28em] text-red-600">Competition history</p><h2 id="timeline-heading" className="mt-3 font-display text-3xl font-bold text-white sm:text-5xl">Built under pressure.</h2></div><span className="hidden text-right text-xs uppercase tracking-[0.2em] text-neutral-600 sm:block">{String(entries.length).padStart(2, '0')} seasons<br />on record</span></div>
-      <div className="lg:border-l lg:border-red-900/70 lg:pl-10">{entries.map((entry, index) => <LegacyEntryCard key={entry.id} entry={entry} index={index} />)}</div>
+      {loading && <div className="py-16 text-center text-neutral-400">Loading legacy...</div>}
+      {!loading && entries.length === 0 && <div className="py-16 text-center text-neutral-400">No legacy entries are available yet.</div>}
+      {!loading && entries.length > 0 && <div className="lg:border-l lg:border-red-900/70 lg:pl-10">{entries.map((entry, index) => <LegacyEntryCard key={entry.id} entry={entry} index={index} />)}</div>}
     </section>
   </motion.div>
 }
