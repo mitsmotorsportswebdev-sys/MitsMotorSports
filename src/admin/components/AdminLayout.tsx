@@ -9,6 +9,7 @@ const navigation = [
   { label: 'Events', path: '/admin/events', icon: CalendarDays },
   { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
   { label: 'Team', path: '/admin/team', icon: UsersRound },
+  { label: 'Alumni', path: '/admin/alumni', icon: UsersRound },
   { label: 'Security', path: '/admin/security', icon: LockKeyhole },
 ]
 

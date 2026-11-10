@@ -1,7 +1,7 @@
 export type ApiProjectMember = {
   id: string
   name: string
-  role: string
+  role?: string
   extras?: string
   imageUrl?: string | null
 }
@@ -175,7 +175,7 @@ export function mapProjectResponse(api: ApiProject): MappedProject {
     (group.members || []).map((member, index) => ({
       id: member.id,
       name: member.name,
-      role: member.role,
+      role: member.role || '',
       imageUrl: toAbsoluteImageUrl(member.imageUrl),
       department: group.name,
       displayOrder: index + 1,

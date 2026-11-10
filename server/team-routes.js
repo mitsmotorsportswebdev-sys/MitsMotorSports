@@ -3,7 +3,9 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import { z } from 'zod'
 import { Group, Image, Member, Project } from './team-model.js'
-import { confirmSchema, directionSchema, groupSchema, idSchema, imageType, imageUrl, memberSchema, projectPatchSchema, projectTextSchema } from './team-utils.js'
+import { alumniMemberSchema, confirmSchema, directionSchema, groupSchema, idSchema, imageType, imageUrl, memberSchema, projectPatchSchema, projectTextSchema } from './team-utils.js'
+
+export const HIDDEN_SLUGS = ['team', 'alumni']
 
 function error(response, status, message, fields) {
   return response.status(status).json({ success: false, message, ...(fields ? { fields } : {}) })
@@ -64,7 +66,7 @@ export function mountTeamRoutes(app, { ProjectModel = Project, GroupModel = Grou
   for (const path of ['/api/admin/groups/:id', '/api/admin/members/:id']) app.use(path, (request, response, next) => { if (!idSchema(request.params.id)) return error(response, 400, 'Invalid id.'); next() })
 
   app.get('/api/projects', limiter, async (_request, response) => {
-    const projects = await ProjectModel.find({ slug: { $nin: ['team'] } }).sort({ slug: 1 })
+    const projects = await ProjectModel.find({ slug: { $nin: HIDDEN_SLUGS } }).sort({ slug: 1 })
     return response.set('Cache-Control', 'public, max-age=60').json({ success: true, data: projects.map((project) => ({ slug: project.slug, title: project.title, tagline: project.tagline, heroImageUrl: imageUrl(project.heroImage) })) })
   })
   app.get('/api/projects/:slug', limiter, async (request, response) => {
@@ -88,7 +90,7 @@ export function mountTeamRoutes(app, { ProjectModel = Project, GroupModel = Grou
   })
 
   app.get('/api/admin/projects', authenticate, async (_request, response) => {
-    const projects = await ProjectModel.find({ slug: { $nin: ['team'] } }).sort({ slug: 1 })
+    const projects = await ProjectModel.find({ slug: { $nin: HIDDEN_SLUGS } }).sort({ slug: 1 })
     return response.json({ success: true, data: projects.map(projectFields) })
   })
   app.get('/api/admin/projects/:slug', authenticate, async (request, response) => {
@@ -141,15 +143,20 @@ export function mountTeamRoutes(app, { ProjectModel = Project, GroupModel = Grou
     await group.deleteOne(); return response.json({ success: true })
   })
   app.post('/api/admin/groups/:id/members', authenticate, async (request, response) => {
-    const data = parsed(memberSchema.omit({ groupId: true }), request.body, response); if (!data) return
     const group = await GroupModel.findById(request.params.id); if (!group) return error(response, 404, 'Group not found.')
+    const project = await ProjectModel.findById(group.project)
+    if (!project) return error(response, 404, 'Project not found.')
+    const schema = project.slug === 'alumni' ? alumniMemberSchema.omit({ groupId: true }) : memberSchema.omit({ groupId: true })
+    const data = parsed(schema, request.body, response); if (!data) return
     const last = await MemberModel.findOne({ group: group._id }).sort({ order: -1 })
     const member = await MemberModel.create({ ...data, group: group._id, order: (last?.order ?? -1) + 1 })
     return response.status(201).json({ success: true, data: adminMember(member) })
   })
   app.patch('/api/admin/members/:id', authenticate, async (request, response) => {
-    const data = parsed(memberSchema, request.body, response); if (!data) return
     const member = await MemberModel.findById(request.params.id); if (!member) return error(response, 404, 'Member not found.')
+    const group = await GroupModel.findById(member.group); if (!group) return error(response, 404, 'Group not found.')
+    const project = await ProjectModel.findById(group.project); if (!project) return error(response, 404, 'Project not found.')
+    const data = parsed(project.slug === 'alumni' ? alumniMemberSchema : memberSchema, request.body, response); if (!data) return
     if (data.groupId && data.groupId !== String(member.group)) {
       if (!idSchema(data.groupId)) return error(response, 400, 'Invalid group id.')
       const target = await GroupModel.findById(data.groupId); const source = await GroupModel.findById(member.group)

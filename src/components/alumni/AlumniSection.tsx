@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion'
-import type { Alumni } from '../../data/alumni'
-import AlumniCard from './AlumniCard'
+import AlumniCard, { type AlumniCardMember } from './AlumniCard'
 
-export default function AlumniSection({ year, members }: { year: string; members: Alumni[] }) {
+export default function AlumniSection({ year, members }: { year: string; members: AlumniCardMember[] }) {
   return (
     <section className="relative border-t border-white/10 py-14 sm:py-20" aria-labelledby={`alumni-${year}`}>
       <div className="mb-8 flex items-end justify-between gap-5 sm:mb-10">

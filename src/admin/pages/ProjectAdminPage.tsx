@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ApiError, adminApi, type AdminGroup, type AdminMember, type AdminProject } from '../services/api'
+import { ApiError, adminApi, resolveImageUrl, type AdminGroup, type AdminMember, type AdminProject } from '../services/api'
 
 const icons = ['power', 'battery', 'speed', 'chassis', 'suspension', 'brake', 'electronics', 'engineering', 'team', 'drive', 'voltage', 'time']
 type Tab = 'details' | 'crew'
@@ -32,16 +32,24 @@ export default function ProjectAdminPage({ fixedSlug }: { fixedSlug?: string }) 
   const { slug: routeSlug = '' } = useParams()
   const slug = fixedSlug || routeSlug
   const isTeam = slug === 'team'
+  const isAlumni = slug === 'alumni'
+  const crewOnly = isTeam || isAlumni
   const [project, setProject] = useState<AdminProject | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [groups, setGroups] = useState<AdminGroup[]>([])
-  const [tab, setTab] = useState<Tab>(isTeam ? 'crew' : 'details')
+  const [tab, setTab] = useState<Tab>(crewOnly ? 'crew' : 'details')
   const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [error, setError] = useState(''); const [errors, setErrors] = useState<Record<string, string[]>>({})
-  const [memberModal, setMemberModal] = useState<MemberDraft | null>(null); const [photoBusy, setPhotoBusy] = useState(false)
+  const [memberModal, setMemberModal] = useState<MemberDraft | null>(null); const [memberErrors, setMemberErrors] = useState<Record<string, string[]>>({}); const [photoBusy, setPhotoBusy] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function load() {
-    try { const value = await adminApi.getAdminProject(slug); setProject(value); setDraft(cloneDraft(value)); setGroups(value.groups || []) } catch (err) { setError(errorMessage(err)) } finally { setLoading(false) }
+    try {
+      const value = await adminApi.getAdminProject(slug)
+      const normalized = isAlumni
+        ? { ...value, groups: value.groups.map((group) => ({ ...group, members: group.members.map((member) => ({ ...member, imageUrl: member.imageUrl ? resolveImageUrl(member.imageUrl) : null })) })) }
+        : value
+      setProject(normalized); setDraft(cloneDraft(normalized)); setGroups(normalized.groups || [])
+    } catch (err) { setError(errorMessage(err)) } finally { setLoading(false) }
   }
   useEffect(() => { void load() }, [slug])
   const groupOptions = useMemo(() => groups.map((group) => ({ id: group.id, name: group.name })), [groups])
@@ -57,18 +65,35 @@ export default function ProjectAdminPage({ fixedSlug }: { fixedSlug?: string }) 
     try { const updated = await adminApi.updateAdminProject(slug, draft); setProject((current) => current ? { ...current, ...updated } : updated); setDraft(cloneDraft(updated)) } catch (err) { setError(errorMessage(err)); if (err instanceof ApiError) setErrors(err.fields || {}) } finally { setSaving(false) }
   }
   async function action(work: () => Promise<unknown>) { setError(''); try { await work(); await load() } catch (err) { setError(errorMessage(err)) } }
+  async function deleteGroup(groupId: string) {
+    setError('')
+    try {
+      await adminApi.deleteGroup(groupId)
+      await load()
+    } catch (err) {
+      setError(isAlumni && err instanceof ApiError && err.status === 409
+        ? 'This season still has alumni. Remove them first.'
+        : errorMessage(err))
+    }
+  }
   async function hero(file: File) { setPhotoBusy(true); setError(''); try { const prepared = await preparePhoto(file, 1600); await adminApi.uploadProjectHero(slug, prepared); await load() } catch (err) { setError(errorMessage(err)) } finally { setPhotoBusy(false) } }
   async function removeHero() { if (!window.confirm('Remove the hero photo?')) return; await action(() => adminApi.deleteProjectHero(slug)) }
-  function openMember(member?: AdminMember, groupId = groups[0]?.id) { setMemberModal(member ? { id: member.id, name: member.name, role: member.role, extras: member.extras || '', visible: member.visible, groupId: member.groupId || groupId, imageUrl: member.imageUrl } : { name: '', role: 'Team Member', extras: '', visible: true, groupId, imageUrl: null }) }
+  function openMember(member?: AdminMember, groupId = groups[0]?.id) { setMemberErrors({}); setMemberModal(member ? { id: member.id, name: member.name, role: member.role || '', extras: member.extras || '', visible: member.visible, groupId: member.groupId || groupId, imageUrl: member.imageUrl } : { name: '', role: isAlumni ? '' : 'Team Member', extras: '', visible: true, groupId, imageUrl: null }) }
   async function saveMember(event: FormEvent) {
     event.preventDefault(); if (!memberModal) return
-    setPhotoBusy(true); setError('')
+    setPhotoBusy(true); setError(''); setMemberErrors({})
     try {
-      const payload = { name: memberModal.name, role: memberModal.role, ...(memberModal.extras.trim() ? { extras: memberModal.extras } : {}), visible: memberModal.visible, ...(memberModal.id ? { groupId: memberModal.groupId } : {}) }
+      const payload = {
+        name: memberModal.name.trim(),
+        ...(isAlumni ? (memberModal.role.trim() ? { role: memberModal.role.trim() } : {}) : { role: memberModal.role }),
+        ...(!isAlumni && memberModal.extras.trim() ? { extras: memberModal.extras } : {}),
+        visible: memberModal.visible,
+        ...(memberModal.id ? { groupId: memberModal.groupId } : {}),
+      }
       const saved = memberModal.id ? await adminApi.updateMember(memberModal.id, payload) : await adminApi.createMember(memberModal.groupId, payload)
       if (memberModal.file) { try { await adminApi.uploadMemberPhoto(saved.id, await preparePhoto(memberModal.file, 800)) } catch { setError('Member saved but the photo failed, try again.') } }
       setMemberModal(null); await load()
-    } catch (err) { setError(errorMessage(err)) } finally { setPhotoBusy(false) }
+    } catch (err) { setError(errorMessage(err)); if (err instanceof ApiError) setMemberErrors(err.fields || {}) } finally { setPhotoBusy(false) }
   }
   function choosePhoto(event: ChangeEvent<HTMLInputElement>) { const file = event.target.files?.[0]; if (file) setMemberModal((current) => current ? { ...current, file, imageUrl: URL.createObjectURL(file) } : current) }
   if (loading) return <div className="admin-state">Loading project...</div>
@@ -76,10 +101,10 @@ export default function ProjectAdminPage({ fixedSlug }: { fixedSlug?: string }) 
   const detailsDraft = draft || { title: '', tagline: '', overview: '', stats: [], specs: [], sections: [] }
 
   return <section className="admin-page">
-    <div className="admin-page-heading"><div>{isTeam ? <><span className="admin-eyebrow">CONTENT / TEAM</span><Link to="/admin/team" className="admin-back-link">Team</Link></> : <Link to="/admin/projects" className="admin-back-link">Projects</Link>}<h2>{isTeam ? 'Team' : project.title}</h2></div></div>
+    <div className="admin-page-heading"><div>{crewOnly ? <><span className="admin-eyebrow">CONTENT / {isAlumni ? 'ALUMNI' : 'TEAM'}</span>{!isAlumni && <Link to="/admin/team" className="admin-back-link">Team</Link>}</> : <Link to="/admin/projects" className="admin-back-link">Projects</Link>}<h2>{crewOnly ? (isAlumni ? 'Alumni' : 'Team') : project.title}</h2></div></div>
     {error && <div className="admin-alert admin-alert-error">{error}</div>}
-    {!isTeam && <div className="admin-tabs" role="tablist"><button className={tab === 'details' ? 'is-active' : ''} onClick={() => setTab('details')}>Details</button><button className={tab === 'crew' ? 'is-active' : ''} onClick={() => setTab('crew')}>Crew</button></div>}
-    {!isTeam && tab === 'details' ? <form className="admin-form" onSubmit={(event) => void save(event)}>
+    {!crewOnly && <div className="admin-tabs" role="tablist"><button className={tab === 'details' ? 'is-active' : ''} onClick={() => setTab('details')}>Details</button><button className={tab === 'crew' ? 'is-active' : ''} onClick={() => setTab('crew')}>Crew</button></div>}
+    {!crewOnly && tab === 'details' ? <form className="admin-form" onSubmit={(event) => void save(event)}>
       <label>Title<input value={detailsDraft.title} onChange={(event) => setDraftValue('title', event.target.value)} /><FieldErrors errors={errors} field="title" /></label>
       <label>Tagline<input value={detailsDraft.tagline} onChange={(event) => setDraftValue('tagline', event.target.value)} /><FieldErrors errors={errors} field="tagline" /></label>
       <label>Overview<textarea value={detailsDraft.overview} onChange={(event) => setDraftValue('overview', event.target.value)} /><FieldErrors errors={errors} field="overview" /></label>
@@ -89,12 +114,12 @@ export default function ProjectAdminPage({ fixedSlug }: { fixedSlug?: string }) 
       <SectionEditor sections={detailsDraft.sections} onChange={(sections) => setDraftValue('sections', sections)} />
       <button className="admin-button admin-button-primary" disabled={saving}>{saving ? 'Saving...' : 'Save details'}</button>
     </form> : <div className="team-crew-editor">
-      {groups.map((group, index) => <section className="team-group" key={group.id}><div className="team-group-header"><input value={group.name} aria-label={`Section ${group.name} name`} onChange={(event) => setGroups((current) => current.map((item) => item.id === group.id ? { ...item, name: event.target.value } : item))} onBlur={() => void action(() => adminApi.renameGroup(group.id, group.name))} /><button disabled={index === 0} onClick={() => void action(() => adminApi.moveGroup(group.id, 'up'))}>Up</button><button disabled={index === groups.length - 1} onClick={() => void action(() => adminApi.moveGroup(group.id, 'down'))}>Down</button><button onClick={() => openMember(undefined, group.id)}>Add member</button><button onClick={() => { if (window.confirm('Delete this section?')) void action(() => adminApi.deleteGroup(group.id)) }}>Delete section</button></div>
-        {group.members.map((member, memberIndex) => <div className="team-member-row" key={member.id}>{member.imageUrl ? <img src={member.imageUrl} alt="" /> : <div className="team-member-placeholder">No photo</div>}<div><strong>{member.name}</strong><span>{member.role}</span><small>{member.extras}</small></div>{!member.visible && <b>Hidden</b>}<button onClick={() => openMember(member, group.id)}>Edit</button><button disabled={memberIndex === 0} onClick={() => void action(() => adminApi.moveMember(member.id, 'up'))}>Up</button><button disabled={memberIndex === group.members.length - 1} onClick={() => void action(() => adminApi.moveMember(member.id, 'down'))}>Down</button><button onClick={() => void action(() => adminApi.updateMember(member.id, { name: member.name, role: member.role, extras: member.extras, visible: !member.visible }))}>{member.visible ? 'Hide' : 'Show'}</button><button onClick={() => { if (window.confirm('Delete this member?')) void action(() => adminApi.deleteMember(member.id)) }}>Delete</button></div>)}
+      {groups.map((group, index) => <section className="team-group" key={group.id}><div className="team-group-header"><input value={group.name} placeholder={isAlumni ? 'e.g. 2026' : undefined} aria-label={`${isAlumni ? 'Season' : 'Section'} ${group.name} name`} onChange={(event) => setGroups((current) => current.map((item) => item.id === group.id ? { ...item, name: event.target.value } : item))} onBlur={() => void action(() => adminApi.renameGroup(group.id, group.name))} /><button disabled={index === 0} onClick={() => void action(() => adminApi.moveGroup(group.id, 'up'))}>Up</button><button disabled={index === groups.length - 1} onClick={() => void action(() => adminApi.moveGroup(group.id, 'down'))}>Down</button><button onClick={() => openMember(undefined, group.id)}>Add {isAlumni ? 'alumnus' : 'member'}</button><button onClick={() => { if (window.confirm(`Delete this ${isAlumni ? 'season' : 'section'}?`)) void deleteGroup(group.id) }}>Delete {isAlumni ? 'season' : 'section'}</button></div>
+        {group.members.map((member, memberIndex) => <div className="team-member-row" key={member.id}>{member.imageUrl ? <img src={member.imageUrl} alt="" /> : <div className="team-member-placeholder">No photo</div>}<div><strong>{member.name}</strong><span>{member.role}</span>{!isAlumni && <small>{member.extras}</small>}</div>{!member.visible && <b>Hidden</b>}<button onClick={() => openMember(member, group.id)}>Edit</button><button disabled={memberIndex === 0} onClick={() => void action(() => adminApi.moveMember(member.id, 'up'))}>Up</button><button disabled={memberIndex === group.members.length - 1} onClick={() => void action(() => adminApi.moveMember(member.id, 'down'))}>Down</button><button onClick={() => void action(() => adminApi.updateMember(member.id, { name: member.name, ...(member.role ? { role: member.role } : {}), ...(!isAlumni ? { extras: member.extras } : {}), visible: !member.visible }))}>{member.visible ? 'Hide' : 'Show'}</button><button onClick={() => { if (window.confirm(`Delete this ${isAlumni ? 'alumnus' : 'member'}?`)) void action(() => adminApi.deleteMember(member.id)) }}>Delete</button></div>)}
       </section>)}
-      <button className="admin-button admin-button-secondary" onClick={() => void action(() => adminApi.createGroup(slug, 'New section'))}>Add section</button>
+      <button className="admin-button admin-button-secondary" onClick={() => void action(() => adminApi.createGroup(slug, isAlumni ? 'New season' : 'New section'))}>Add {isAlumni ? 'season' : 'section'}</button>
     </div>}
-    {memberModal && <div className="admin-modal-backdrop"><form className="admin-modal admin-form" role="dialog" aria-modal="true" onSubmit={(event) => void saveMember(event)}><h3>{memberModal.id ? 'Edit member' : 'Add member'}</h3><label>Name<input autoFocus value={memberModal.name} onChange={(event) => setMemberModal({ ...memberModal, name: event.target.value })} /></label><label>Role<input value={memberModal.role} onChange={(event) => setMemberModal({ ...memberModal, role: event.target.value })} /></label><label>Department<input value={memberModal.extras} onChange={(event) => setMemberModal({ ...memberModal, extras: event.target.value })} /></label><label>Section<select value={memberModal.groupId} onChange={(event) => setMemberModal({ ...memberModal, groupId: event.target.value })}>{groupOptions.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label><label className="admin-check"><input type="checkbox" checked={memberModal.visible} onChange={(event) => setMemberModal({ ...memberModal, visible: event.target.checked })} /> Visible</label><input ref={fileRef} type="file" accept="image/*" onChange={choosePhoto} />{memberModal.imageUrl && <img className="admin-image-preview" src={memberModal.imageUrl} alt="Member preview" />}{memberModal.id && memberModal.imageUrl && <button type="button" onClick={() => void action(async () => { await adminApi.deleteMemberPhoto(memberModal.id as string); setMemberModal({ ...memberModal, imageUrl: null }) })}>Remove photo</button>}<div><button className="admin-button admin-button-primary" disabled={photoBusy}>Save member</button><button type="button" className="admin-button admin-button-secondary" onClick={() => setMemberModal(null)}>Cancel</button></div></form></div>}
+    {memberModal && <div className="admin-modal-backdrop"><form className="admin-modal admin-form" role="dialog" aria-modal="true" onSubmit={(event) => void saveMember(event)}><h3>{memberModal.id ? `Edit ${isAlumni ? 'alumnus' : 'member'}` : `Add ${isAlumni ? 'alumnus' : 'member'}`}</h3><label>Name<input autoFocus required value={memberModal.name} onChange={(event) => { setMemberModal({ ...memberModal, name: event.target.value }); setMemberErrors((current) => ({ ...current, name: [] })) }} /><FieldErrors errors={memberErrors} field="name" /></label><label>Role<input placeholder={isAlumni ? 'e.g. Captain' : undefined} value={memberModal.role} onChange={(event) => { setMemberModal({ ...memberModal, role: event.target.value }); setMemberErrors((current) => ({ ...current, role: [] })) }} />{isAlumni && <small>Optional</small>}<FieldErrors errors={memberErrors} field="role" /></label>{!isAlumni && <label>Department<input value={memberModal.extras} onChange={(event) => setMemberModal({ ...memberModal, extras: event.target.value })} /></label>}<label>{isAlumni ? 'Season' : 'Section'}<select value={memberModal.groupId} onChange={(event) => setMemberModal({ ...memberModal, groupId: event.target.value })}>{groupOptions.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label><label className="admin-check"><input type="checkbox" checked={memberModal.visible} onChange={(event) => setMemberModal({ ...memberModal, visible: event.target.checked })} /> Visible</label><label>Photo<input ref={fileRef} type="file" accept="image/*" onChange={choosePhoto} /></label>{memberModal.imageUrl && <img className="admin-image-preview" src={memberModal.imageUrl} alt="Member preview" />}{memberModal.id && memberModal.imageUrl && <button type="button" onClick={() => void action(async () => { await adminApi.deleteMemberPhoto(memberModal.id as string); setMemberModal({ ...memberModal, imageUrl: null }) })}>Remove photo</button>}<div><button className="admin-button admin-button-primary" disabled={photoBusy}>Save {isAlumni ? 'alumnus' : 'member'}</button><button type="button" className="admin-button admin-button-secondary" onClick={() => setMemberModal(null)}>Cancel</button></div></form></div>}
   </section>
 }
 

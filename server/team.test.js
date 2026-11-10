@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { z } from 'zod'
-import { imageType, projectPatchSchema, projectSeedSchema } from './team-utils.js'
+import { buildAlumniPagePlan } from './seed-alumni.js'
+import { alumniGroupSeedSchema, alumniMemberSeedSchema, alumniMemberSchema, imageType, projectPatchSchema, projectSeedSchema } from './team-utils.js'
 
 test('team schemas trim values and reject unknown fields', () => {
   const result = projectPatchSchema.safeParse({ title: '  Aethon  ', unknown: true })
@@ -14,6 +15,24 @@ test('team schemas trim values and reject unknown fields', () => {
 test('team project seeds without project copy fields', () => {
   assert.equal(projectSeedSchema.safeParse({ slug: 'team' }).success, true)
   assert.equal(projectSeedSchema.safeParse({ slug: 'other' }).success, false)
+})
+test('alumni seed schemas accept optional roles and reject other slugs', () => {
+  assert.equal(projectSeedSchema.safeParse({ slug: 'alumni' }).success, true)
+  assert.equal(alumniGroupSeedSchema.safeParse({ name: '2025', order: 0 }).success, true)
+  assert.equal(alumniMemberSeedSchema.safeParse({ name: 'Former member', order: 0 }).success, true)
+  assert.equal(alumniMemberSchema.safeParse({ name: 'Former member' }).success, true)
+  assert.equal(alumniMemberSchema.safeParse({ name: 'Former member', role: '' }).success, true)
+  assert.equal(projectSeedSchema.safeParse({ slug: 'not-alumni' }).success, false)
+  assert.equal(alumniMemberSeedSchema.safeParse({ name: 'Former member', role: '', order: 0 }).success, false)
+})
+test('alumni source plan has the expected ordered groups and members', async () => {
+  const plan = await buildAlumniPagePlan()
+  assert.deepEqual(plan.groups.map((group) => group.group.name), ['2025', '2024', '2023'])
+  assert.deepEqual(plan.groups.map((group) => group.members.length), [12, 15, 6])
+  assert.equal(plan.groups.reduce((count, group) => count + group.members.length, 0), 33)
+  assert.equal(plan.groups[0].members[0].name, 'Arjun M Nair')
+  assert.equal(plan.groups[0].members[0].role, 'Captain')
+  assert.equal(plan.groups[0].members[1].role, undefined)
 })
 test('normal project seeds require project copy fields', () => {
   for (const slug of ['aethon', 'ebaja']) {

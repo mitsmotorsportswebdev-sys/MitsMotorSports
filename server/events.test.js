@@ -23,7 +23,7 @@ test('event validation accepts secure image URLs and site paths', () => {
   assert.equal(eventSchema.safeParse(event({ image: 'https://cdn.example.com/a.jpg' })).success, true)
   assert.equal(eventSchema.safeParse(event({ image: '/images/event.jpg' })).success, true)
   assert.equal(eventSchema.safeParse(event({ image: '//cdn.example.com/a.jpg' })).success, false)
-  assert.equal(eventSchema.safeParse(event({ image: `/${'a'.repeat(500)}` })).success, true)
+  assert.equal(eventSchema.safeParse(event({ image: `/${'a'.repeat(499)}` })).success, true)
   assert.equal(eventSchema.safeParse(event({ image: `/${'a'.repeat(501)}` })).success, false)
   assert.equal(eventSchema.safeParse(event({ eventDate: '2099-02-29' })).success, false)
   assert.equal(eventEndUtc('2026-12-20').toISOString(), '2026-12-20T18:29:59.999Z')

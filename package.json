@@ -16,6 +16,8 @@
     "seed-team": "node server/seed-team.js",
     "reset-team-page": "node server/reset-team-page.js",
     "seed-team-page": "node server/seed-team-page.js",
+    "reset-alumni": "node server/reset-alumni.js",
+    "seed-alumni": "node server/seed-alumni.js",
     "refresh-expiry": "node server/refresh-expiry.js",
     "test:events:integration": "node --env-file=.env --test server/events.integration.mjs"
   },

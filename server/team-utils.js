@@ -28,6 +28,9 @@ export const projectTextSchema = z.strictObject({
 export const projectPatchSchema = projectTextSchema.partial()
 export const groupSchema = z.strictObject({ name: text(60) })
 export const memberSchema = z.strictObject({ name: text(80), role: text(80), extras: text(80).optional(), visible: z.boolean().optional(), groupId: z.string().optional() })
+const alumniRole = z.string().trim().max(80).optional().transform((value) => value || undefined)
+const alumniSeedRole = z.string().trim().min(1).max(80).optional()
+export const alumniMemberSchema = z.strictObject({ name: text(80), role: alumniRole, visible: z.boolean().optional(), groupId: z.string().optional() })
 export const directionSchema = z.strictObject({ direction: z.enum(['up', 'down']) })
 export const confirmSchema = z.strictObject({ confirm: z.literal(true) })
 
@@ -37,17 +40,38 @@ const teamProjectSeedSchema = z.object({
   heroImage: z.any().nullable().optional(),
   _id: z.any().optional(),
 }).strict()
+const alumniProjectSeedSchema = z.object({
+  slug: z.literal('alumni'),
+  heroImage: z.any().nullable().optional(),
+  _id: z.any().optional(),
+}).strict()
 export const projectSeedSchema = z.union([
   projectTextSchema.extend({ slug, heroImage: z.any().nullable().optional(), _id: z.any().optional() }).strict(),
   teamProjectSeedSchema,
+  alumniProjectSeedSchema,
 ])
 export const groupSeedSchema = groupSchema.extend({
   order: z.number().int().min(0),
   project: z.any().optional(),
   _id: z.any().optional(),
 }).strict()
+export const alumniGroupSeedSchema = z.strictObject({
+  name: text(60),
+  order: z.number().int().min(0),
+  project: z.any().optional(),
+  _id: z.any().optional(),
+})
 export const memberSeedSchema = memberSchema.extend({
   extras: z.string().trim().max(80).optional(),
+  order: z.number().int().min(0),
+  image: z.any().nullable().optional(),
+  group: z.any().optional(),
+  _id: z.any().optional(),
+}).strict()
+export const alumniMemberSeedSchema = z.strictObject({
+  name: text(80),
+  role: alumniSeedRole,
+  visible: z.boolean().optional(),
   order: z.number().int().min(0),
   image: z.any().nullable().optional(),
   group: z.any().optional(),

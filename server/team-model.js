@@ -6,9 +6,9 @@ const sectionSchema = new mongoose.Schema({ title: String, description: String, 
 
 const projectSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true, immutable: true, index: true },
-  title: { type: String, required: function () { return this.slug !== 'team' } },
-  tagline: { type: String, required: function () { return this.slug !== 'team' } },
-  overview: { type: String, required: function () { return this.slug !== 'team' } },
+  title: { type: String, required: function () { return !['team', 'alumni'].includes(this.slug) } },
+  tagline: { type: String, required: function () { return !['team', 'alumni'].includes(this.slug) } },
+  overview: { type: String, required: function () { return !['team', 'alumni'].includes(this.slug) } },
   heroImage: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamImage', default: null },
   stats: { type: [statSchema], default: [] },
   specs: { type: [specSchema], default: [] },
@@ -34,7 +34,7 @@ const groupSchema = new mongoose.Schema({
 const memberSchema = new mongoose.Schema({
   group: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamGroup', required: true, index: true },
   name: { type: String, required: true },
-  role: { type: String, required: true },
+  role: { type: String },
   extras: { type: String, default: '' },
   image: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamImage', default: null },
   visible: { type: Boolean, default: true },

@@ -12,14 +12,15 @@ create a second frontend project.
 - `/admin/about` - about singleton editor
 - `/admin/projects` - project list and project creation
 - `/admin/team` - read-only team inventory
-- `/admin/alumni` - read-only alumni inventory
+- `/admin/alumni` - editable alumni seasons and members
 - `/admin/sponsors` - read-only sponsor inventory
 - `/admin/gallery` - read-only gallery inventory
 - `/admin/legacy` - read-only legacy inventory
 
 ## API routes used
 
-Public reads use `GET /api/home`, `/about`, `/projects`, `/team`, `/alumni`,
+Public reads use `GET /api/home`, `/about`, `/projects`, `/team`, and
+`/projects/alumni` for the public alumni page; other public reads use `/alumni`,
 `/sponsors`, `/gallery`, and `/legacy`.
 
 Authenticated writes use:
@@ -68,10 +69,10 @@ created privately with `npm run setup-admin` and its password is reset with
 ## Backend-dependent limitations
 
 The current backend does not expose admin CRUD endpoints for TeamMember,
-Sponsor, GalleryItem, Legacy, or Alumni. Those screens intentionally show
-available published data and mark themselves read-only rather than making fake
-requests. Alumni also has no model and its current endpoint returns an empty
-array.
+Sponsor, GalleryItem, or Legacy. Those screens intentionally show available
+published data and mark themselves read-only rather than making fake requests.
+Alumni is managed through `/admin/alumni`, and its public page reads the
+server-backed `/api/projects/alumni` project.
 
 Project update and delete endpoints are not exposed either, so the Projects
 screen supports creation only. The backend should add and authorize those

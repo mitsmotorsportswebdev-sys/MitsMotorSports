@@ -52,7 +52,7 @@ export class ApiError extends Error {
 
 }
 
-export type AdminMember = { id: string; name: string; role: string; extras: string; imageUrl: string | null; imageId?: string | null; groupId: string; order: number; visible: boolean }
+export type AdminMember = { id: string; name: string; role?: string; extras: string; imageUrl: string | null; imageId?: string | null; groupId: string; order: number; visible: boolean }
 export type AdminGroup = { id: string; name: string; order: number; members: AdminMember[] }
 export type AdminProjectSummary = { id: string; slug: string; title: string; tagline: string; heroImageUrl: string | null; memberCount?: number }
 export type AdminProject = AdminProjectSummary & { overview: string; stats: Array<{ label: string; value: string }>; specs: Array<{ label: string; value: string; description?: string; icon?: string }>; sections: Array<{ title: string; description: string; bullets: string[] }>; groups: AdminGroup[] }
