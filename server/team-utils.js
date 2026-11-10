@@ -32,11 +32,15 @@ export const directionSchema = z.strictObject({ direction: z.enum(['up', 'down']
 export const confirmSchema = z.strictObject({ confirm: z.literal(true) })
 
 const slug = text(60).regex(/^[a-z0-9_-]+$/)
-export const projectSeedSchema = projectTextSchema.extend({
-  slug,
+const teamProjectSeedSchema = z.object({
+  slug: z.literal('team'),
   heroImage: z.any().nullable().optional(),
   _id: z.any().optional(),
 }).strict()
+export const projectSeedSchema = z.union([
+  projectTextSchema.extend({ slug, heroImage: z.any().nullable().optional(), _id: z.any().optional() }).strict(),
+  teamProjectSeedSchema,
+])
 export const groupSeedSchema = groupSchema.extend({
   order: z.number().int().min(0),
   project: z.any().optional(),

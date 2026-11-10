@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { CalendarDays, FolderKanban, LayoutDashboard, LockKeyhole, LogOut, Menu, PanelLeftClose, X } from 'lucide-react'
+import { CalendarDays, FolderKanban, LayoutDashboard, LockKeyhole, LogOut, Menu, PanelLeftClose, UsersRound, X } from 'lucide-react'
 import { clearAuth, getUser } from '../services/auth'
 import '../styles/admin.css'
 
@@ -8,6 +8,7 @@ const navigation = [
   { label: 'Overview', path: '/admin', icon: LayoutDashboard, end: true },
   { label: 'Events', path: '/admin/events', icon: CalendarDays },
   { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
+  { label: 'Team', path: '/admin/team', icon: UsersRound },
   { label: 'Security', path: '/admin/security', icon: LockKeyhole },
 ]
 

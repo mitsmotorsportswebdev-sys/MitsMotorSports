@@ -14,6 +14,8 @@
     "reset-events": "node server/reset-events.js",
     "reset-team": "node server/reset-team.js",
     "seed-team": "node server/seed-team.js",
+    "reset-team-page": "node server/reset-team-page.js",
+    "seed-team-page": "node server/seed-team-page.js",
     "refresh-expiry": "node server/refresh-expiry.js",
     "test:events:integration": "node --env-file=.env --test server/events.integration.mjs"
   },

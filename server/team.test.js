@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { z } from 'zod'
-import { imageType, projectPatchSchema } from './team-utils.js'
+import { imageType, projectPatchSchema, projectSeedSchema } from './team-utils.js'
 
 test('team schemas trim values and reject unknown fields', () => {
   const result = projectPatchSchema.safeParse({ title: '  Aethon  ', unknown: true })
@@ -10,6 +10,15 @@ test('team schemas trim values and reject unknown fields', () => {
   assert.equal(valid.success, true)
   assert.equal(valid.data.title, 'Aethon')
   assert.equal(z.string().max(80).safeParse('x'.repeat(81)).success, false)
+})
+test('team project seeds without project copy fields', () => {
+  assert.equal(projectSeedSchema.safeParse({ slug: 'team' }).success, true)
+  assert.equal(projectSeedSchema.safeParse({ slug: 'other' }).success, false)
+})
+test('normal project seeds require project copy fields', () => {
+  for (const slug of ['aethon', 'ebaja']) {
+    assert.equal(projectSeedSchema.safeParse({ slug }).success, false)
+  }
 })
 test('image type check validates magic bytes', () => {
   assert.equal(imageType(Buffer.from([0xff, 0xd8, 0xff, 0x00])), 'image/jpeg')

@@ -5,7 +5,7 @@ export type CrewCardProps = {
   name: string;
   role: string;
   image?: string;                 // absolute photo URL from the API
-  project?: "aethon" | "ebaja";   // kept for future per-project styling
+  project?: "aethon" | "ebaja" | "team";   // kept for future per-project styling
   cutout?: boolean;               // true = transparent PNG/WebP of the person
 };
 

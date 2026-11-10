@@ -6,9 +6,9 @@ const sectionSchema = new mongoose.Schema({ title: String, description: String, 
 
 const projectSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true, immutable: true, index: true },
-  title: { type: String, required: true },
-  tagline: { type: String, required: true },
-  overview: { type: String, required: true },
+  title: { type: String, required: function () { return this.slug !== 'team' } },
+  tagline: { type: String, required: function () { return this.slug !== 'team' } },
+  overview: { type: String, required: function () { return this.slug !== 'team' } },
   heroImage: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamImage', default: null },
   stats: { type: [statSchema], default: [] },
   specs: { type: [specSchema], default: [] },

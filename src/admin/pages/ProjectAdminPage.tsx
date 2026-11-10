@@ -28,12 +28,14 @@ function FieldErrors({ errors, field }: { errors: Record<string, string[]>; fiel
   return <>{errors[field]?.map((message) => <small className="admin-field-error" key={message}>{message}</small>)}</>
 }
 
-export default function ProjectAdminPage() {
-  const { slug = '' } = useParams()
+export default function ProjectAdminPage({ fixedSlug }: { fixedSlug?: string }) {
+  const { slug: routeSlug = '' } = useParams()
+  const slug = fixedSlug || routeSlug
+  const isTeam = slug === 'team'
   const [project, setProject] = useState<AdminProject | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [groups, setGroups] = useState<AdminGroup[]>([])
-  const [tab, setTab] = useState<Tab>('details')
+  const [tab, setTab] = useState<Tab>(isTeam ? 'crew' : 'details')
   const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [error, setError] = useState(''); const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [memberModal, setMemberModal] = useState<MemberDraft | null>(null); const [photoBusy, setPhotoBusy] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -57,12 +59,12 @@ export default function ProjectAdminPage() {
   async function action(work: () => Promise<unknown>) { setError(''); try { await work(); await load() } catch (err) { setError(errorMessage(err)) } }
   async function hero(file: File) { setPhotoBusy(true); setError(''); try { const prepared = await preparePhoto(file, 1600); await adminApi.uploadProjectHero(slug, prepared); await load() } catch (err) { setError(errorMessage(err)) } finally { setPhotoBusy(false) } }
   async function removeHero() { if (!window.confirm('Remove the hero photo?')) return; await action(() => adminApi.deleteProjectHero(slug)) }
-  function openMember(member?: AdminMember, groupId = groups[0]?.id) { setMemberModal(member ? { id: member.id, name: member.name, role: member.role, extras: member.extras || '', visible: member.visible, groupId: member.groupId || groupId, imageUrl: member.imageUrl } : { name: '', role: '', extras: '', visible: true, groupId, imageUrl: null }) }
+  function openMember(member?: AdminMember, groupId = groups[0]?.id) { setMemberModal(member ? { id: member.id, name: member.name, role: member.role, extras: member.extras || '', visible: member.visible, groupId: member.groupId || groupId, imageUrl: member.imageUrl } : { name: '', role: 'Team Member', extras: '', visible: true, groupId, imageUrl: null }) }
   async function saveMember(event: FormEvent) {
     event.preventDefault(); if (!memberModal) return
     setPhotoBusy(true); setError('')
     try {
-      const payload = { name: memberModal.name, role: memberModal.role, extras: memberModal.extras, visible: memberModal.visible, ...(memberModal.id ? { groupId: memberModal.groupId } : {}) }
+      const payload = { name: memberModal.name, role: memberModal.role, ...(memberModal.extras.trim() ? { extras: memberModal.extras } : {}), visible: memberModal.visible, ...(memberModal.id ? { groupId: memberModal.groupId } : {}) }
       const saved = memberModal.id ? await adminApi.updateMember(memberModal.id, payload) : await adminApi.createMember(memberModal.groupId, payload)
       if (memberModal.file) { try { await adminApi.uploadMemberPhoto(saved.id, await preparePhoto(memberModal.file, 800)) } catch { setError('Member saved but the photo failed, try again.') } }
       setMemberModal(null); await load()
@@ -70,20 +72,21 @@ export default function ProjectAdminPage() {
   }
   function choosePhoto(event: ChangeEvent<HTMLInputElement>) { const file = event.target.files?.[0]; if (file) setMemberModal((current) => current ? { ...current, file, imageUrl: URL.createObjectURL(file) } : current) }
   if (loading) return <div className="admin-state">Loading project...</div>
-  if (!project || !draft) return <div className="admin-alert admin-alert-error">{error || 'Project not found.'}</div>
+  if (!project || (!isTeam && !draft)) return <div className="admin-alert admin-alert-error">{error || 'Project not found.'}</div>
+  const detailsDraft = draft || { title: '', tagline: '', overview: '', stats: [], specs: [], sections: [] }
 
   return <section className="admin-page">
-    <div className="admin-page-heading"><div><Link to="/admin/projects" className="admin-back-link">Projects</Link><h2>{project.title}</h2></div></div>
+    <div className="admin-page-heading"><div>{isTeam ? <><span className="admin-eyebrow">CONTENT / TEAM</span><Link to="/admin/team" className="admin-back-link">Team</Link></> : <Link to="/admin/projects" className="admin-back-link">Projects</Link>}<h2>{isTeam ? 'Team' : project.title}</h2></div></div>
     {error && <div className="admin-alert admin-alert-error">{error}</div>}
-    <div className="admin-tabs" role="tablist"><button className={tab === 'details' ? 'is-active' : ''} onClick={() => setTab('details')}>Details</button><button className={tab === 'crew' ? 'is-active' : ''} onClick={() => setTab('crew')}>Crew</button></div>
-    {tab === 'details' ? <form className="admin-form" onSubmit={(event) => void save(event)}>
-      <label>Title<input value={draft.title} onChange={(event) => setDraftValue('title', event.target.value)} /><FieldErrors errors={errors} field="title" /></label>
-      <label>Tagline<input value={draft.tagline} onChange={(event) => setDraftValue('tagline', event.target.value)} /><FieldErrors errors={errors} field="tagline" /></label>
-      <label>Overview<textarea value={draft.overview} onChange={(event) => setDraftValue('overview', event.target.value)} /><FieldErrors errors={errors} field="overview" /></label>
+    {!isTeam && <div className="admin-tabs" role="tablist"><button className={tab === 'details' ? 'is-active' : ''} onClick={() => setTab('details')}>Details</button><button className={tab === 'crew' ? 'is-active' : ''} onClick={() => setTab('crew')}>Crew</button></div>}
+    {!isTeam && tab === 'details' ? <form className="admin-form" onSubmit={(event) => void save(event)}>
+      <label>Title<input value={detailsDraft.title} onChange={(event) => setDraftValue('title', event.target.value)} /><FieldErrors errors={errors} field="title" /></label>
+      <label>Tagline<input value={detailsDraft.tagline} onChange={(event) => setDraftValue('tagline', event.target.value)} /><FieldErrors errors={errors} field="tagline" /></label>
+      <label>Overview<textarea value={detailsDraft.overview} onChange={(event) => setDraftValue('overview', event.target.value)} /><FieldErrors errors={errors} field="overview" /></label>
       <PhotoEditor label="Hero photo" imageUrl={project.heroImageUrl} busy={photoBusy} onFile={hero} onRemove={removeHero} fileRef={fileRef} />
-      <EditableRows title="Stats" rows={draft.stats} fields={['label', 'value']} onChange={(index, value) => updateRow('stats', index, value)} onAdd={() => setDraftValue('stats', [...draft.stats, { label: '', value: '' }])} onRemove={(index) => setDraftValue('stats', draft.stats.filter((_, item) => item !== index))} />
-      <EditableRows title="Specs" rows={draft.specs} fields={['label', 'value', 'description', 'icon']} iconNames={icons} onChange={(index, value) => updateRow('specs', index, value)} onMove={(index, direction) => setDraftValue('specs', swap(draft.specs, index, direction))} onAdd={() => setDraftValue('specs', [...draft.specs, { label: '', value: '', description: '', icon: icons[0] }])} onRemove={(index) => setDraftValue('specs', draft.specs.filter((_, item) => item !== index))} />
-      <SectionEditor sections={draft.sections} onChange={(sections) => setDraftValue('sections', sections)} />
+      <EditableRows title="Stats" rows={detailsDraft.stats} fields={['label', 'value']} onChange={(index, value) => updateRow('stats', index, value)} onAdd={() => setDraftValue('stats', [...detailsDraft.stats, { label: '', value: '' }])} onRemove={(index) => setDraftValue('stats', detailsDraft.stats.filter((_, item) => item !== index))} />
+      <EditableRows title="Specs" rows={detailsDraft.specs} fields={['label', 'value', 'description', 'icon']} iconNames={icons} onChange={(index, value) => updateRow('specs', index, value)} onMove={(index, direction) => setDraftValue('specs', swap(detailsDraft.specs, index, direction))} onAdd={() => setDraftValue('specs', [...detailsDraft.specs, { label: '', value: '', description: '', icon: icons[0] }])} onRemove={(index) => setDraftValue('specs', detailsDraft.specs.filter((_, item) => item !== index))} />
+      <SectionEditor sections={detailsDraft.sections} onChange={(sections) => setDraftValue('sections', sections)} />
       <button className="admin-button admin-button-primary" disabled={saving}>{saving ? 'Saving...' : 'Save details'}</button>
     </form> : <div className="team-crew-editor">
       {groups.map((group, index) => <section className="team-group" key={group.id}><div className="team-group-header"><input value={group.name} aria-label={`Section ${group.name} name`} onChange={(event) => setGroups((current) => current.map((item) => item.id === group.id ? { ...item, name: event.target.value } : item))} onBlur={() => void action(() => adminApi.renameGroup(group.id, group.name))} /><button disabled={index === 0} onClick={() => void action(() => adminApi.moveGroup(group.id, 'up'))}>Up</button><button disabled={index === groups.length - 1} onClick={() => void action(() => adminApi.moveGroup(group.id, 'down'))}>Down</button><button onClick={() => openMember(undefined, group.id)}>Add member</button><button onClick={() => { if (window.confirm('Delete this section?')) void action(() => adminApi.deleteGroup(group.id)) }}>Delete section</button></div>

@@ -123,9 +123,11 @@ function toAbsoluteImageUrl(url?: string | null): string {
   if (/^https?:\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) {
     return url
   }
+
   if (!apiUrl) {
     return url
   }
+
   if (/^https?:\/\//i.test(apiUrl)) {
     try {
       const parsedApi = new URL(apiUrl)
@@ -144,6 +146,8 @@ function toAbsoluteImageUrl(url?: string | null): string {
   }
   return url
 }
+
+export const resolveProjectImageUrl = toAbsoluteImageUrl
 
 export async function getPublicProject(slug: string): Promise<ApiProject> {
   let response: Response

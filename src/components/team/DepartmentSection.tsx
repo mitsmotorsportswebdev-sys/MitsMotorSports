@@ -4,7 +4,7 @@ import CrewCard from '../crew/CrewCard'
 export type DepartmentSectionProps = {
   title: string
   members: Array<{ id?: string; name: string; role?: string; imageUrl?: string; active?: boolean; displayOrder?: number }>
-  project: 'aethon' | 'ebaja'
+  project: 'aethon' | 'ebaja' | 'team'
   className?: string
 }
 

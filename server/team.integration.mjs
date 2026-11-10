@@ -5,6 +5,7 @@ import mongoose from 'mongoose'
 import request from 'supertest'
 import { Group, Image, Member, Project } from './team-model.js'
 import { mountTeamRoutes } from './team-routes.js'
+import { resetTeamPage, seedTeamPage } from './seed-team-page.js'
 
 const uri = process.env.EVENTS_TEST_MONGODB_URI
 if (!uri) throw new Error('EVENTS_TEST_MONGODB_URI is required; refusing to run integration tests')
@@ -54,6 +55,108 @@ test('public project hides members and unknown slugs are 404', async () => {
   value(response.body.data.groups[0].members.length, 1, response)
   const unknown = await api.get('/api/projects/nope')
   status(unknown, 404)
+})
+
+test('team project is readable but hidden from project lists', async () => {
+  const team = await project('team')
+  const section = await group(team, 'Faculty In Charge')
+  await member(section, 'Advisor', 1)
+  await project('aethon')
+  await project('ebaja')
+  let response = await api.get('/api/projects/team')
+  status(response, 200)
+  value(response.body.data.groups[0].name, 'Faculty In Charge', response)
+  response = await api.get('/api/projects')
+  status(response, 200)
+  value(response.body.data.map((item) => item.slug), ['aethon', 'ebaja'], response)
+  response = await admin('/projects')
+  status(response, 200)
+  value(response.body.data.map((item) => item.slug), ['aethon', 'ebaja'], response)
+})
+
+test('normal projects require copy fields while team does not', async () => {
+  await assert.rejects(() => Project.create({ slug: 'aethon' }))
+  const team = await Project.create({ slug: 'team' })
+  assert.equal(team.slug, 'team')
+})
+
+test('team page seed has ordered sections, is idempotent, and resets independently', async () => {
+  const aethon = await project('aethon')
+  const ebaja = await project('ebaja')
+  const seed = await seedTeamPage({ ProjectModel: Project, GroupModel: Group, MemberModel: Member, ImageModel: Image })
+  assert.deepEqual(seed.groups.map((section) => section.members.length), [2, 4, 3, 3, 4, 4])
+  assert.deepEqual((await Group.find({ project: seed.project._id }).sort({ order: 1 })).map((section) => section.name), [
+    'Faculty In Charge', 'Executive Committee', 'Program Council — Leads', 'Program Council — Subcom',
+    'Program Council — Other/Leadership', 'Media Team',
+  ])
+  await seedTeamPage({ ProjectModel: Project, GroupModel: Group, MemberModel: Member, ImageModel: Image })
+  assert.equal(await Project.countDocuments({ slug: 'team' }), 1)
+  assert.equal(await Group.countDocuments({ project: (await Project.findOne({ slug: 'team' }))._id }), 6)
+  await resetTeamPage({ ProjectModel: Project, GroupModel: Group, MemberModel: Member, ImageModel: Image })
+  assert.equal(await Project.countDocuments({ _id: { $in: [aethon._id, ebaja._id] } }), 2)
+  assert.equal(await Project.countDocuments({ slug: 'team' }), 0)
+})
+
+test('admin team project returns all seeded sections and members', async () => {
+  await seedTeamPage({ ProjectModel: Project, GroupModel: Group, MemberModel: Member, ImageModel: Image })
+  const response = await admin('/projects/team')
+  status(response, 200)
+  value(response.body.data.groups.length, 6, response)
+  value(response.body.data.groups.reduce((count, section) => count + section.members.length, 0), 20, response)
+})
+
+test('admin-created visible team member appears in the public project', async () => {
+  const team = await project('team')
+  const section = await group(team, 'Media Team')
+  const created = await admin(`/groups/${section._id}/members`, 'post')
+    .send({ name: 'New Team Member', role: 'Team Member', extras: 'Media Team', visible: true })
+  status(created, 201)
+  const response = await api.get('/api/projects/team')
+  status(response, 200)
+  assert.equal(response.body.data.groups.find((item) => item.name === 'Media Team').members.some((item) => item.name === 'New Team Member'), true)
+})
+
+test('team member and empty section deletion update the public project', async () => {
+  const team = await project('team')
+  const occupied = await group(team, 'Media Team')
+  const empty = await group(team, 'Temporary', 1)
+  const removable = await member(occupied, 'Removable', 0)
+  let response = await admin(`/members/${removable._id}`, 'delete').send({ confirm: true })
+  status(response, 200)
+  response = await api.get('/api/projects/team')
+  status(response, 200)
+  assert.equal(response.body.data.groups.find((item) => item.name === 'Media Team').members.some((item) => item.name === 'Removable'), false)
+  response = await admin(`/groups/${empty._id}`, 'delete').send({ confirm: true })
+  status(response, 200)
+  response = await api.get('/api/projects/team')
+  status(response, 200)
+  assert.equal(response.body.data.groups.some((item) => item.name === 'Temporary'), false)
+})
+
+test('team member edits and section renames update the public project', async () => {
+  await seedTeamPage({ ProjectModel: Project, GroupModel: Group, MemberModel: Member, ImageModel: Image })
+  const team = await Project.findOne({ slug: 'team' })
+  const source = await Group.findOne({ project: team._id }).sort({ order: 1 })
+  const target = await Group.findOne({ project: team._id }).sort({ order: -1 })
+  const seeded = await Member.findOne({ group: source._id }).sort({ order: 1 })
+  let response = await admin(`/members/${seeded._id}`, 'patch').send({
+    name: 'Updated Team Member',
+    role: 'Updated Role',
+    groupId: target._id.toString(),
+    visible: false,
+  })
+  status(response, 200)
+  response = await admin(`/groups/${source._id}`, 'patch').send({ name: 'Renamed Faculty' })
+  status(response, 200)
+  response = await api.get('/api/projects/team')
+  status(response, 200)
+  assert.equal(response.body.data.groups.some((item) => item.name === 'Renamed Faculty'), true)
+  assert.equal(response.body.data.groups.some((item) => item.members.some((item) => item.name === 'Updated Team Member')), false)
+  const adminResponse = await admin('/projects/team')
+  status(adminResponse, 200)
+  const updated = adminResponse.body.data.groups.find((item) => item.name === target.name).members.find((item) => item.name === 'Updated Team Member')
+  assert.equal(updated.role, 'Updated Role')
+  assert.equal(updated.visible, false)
 })
 
 test('admin routes require login', async () => {

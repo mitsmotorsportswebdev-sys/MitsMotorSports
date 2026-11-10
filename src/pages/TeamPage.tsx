@@ -1,17 +1,29 @@
-import { useMemo, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import CrewCard from '../components/crew/CrewCard'
-import { teamMembers } from '../data/team'
+import { getPublicProject, resolveProjectImageUrl, type ApiProject } from '../services/projectService'
 import teamPhoto from '../assets/images/gallery/gkdc1.jpg'
 
 const categoryOrder = ['Faculty In Charge', 'Executive Committee', 'Program Council — Leads', 'Program Council — Subcom', 'Program Council — Other/Leadership', 'Media Team']
 const headingFor = (category: string) => category.startsWith('Program Council') ? `Program Council / ${category.replace('Program Council — ', '')}` : category
 
 export default function TeamPage() {
-  const groupedMembers = useMemo(() => categoryOrder.map((category) => ({ category, members: teamMembers.filter((member) => member.active && member.category === category).sort((a, b) => a.displayOrder - b.displayOrder) })).filter((group) => group.members.length > 0), [])
+  const [project, setProject] = useState<ApiProject | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    getPublicProject('team')
+      .then(setProject)
+      .catch((err) => setError(err instanceof Error ? err.message : 'The team could not be loaded.'))
+      .finally(() => setLoading(false))
+  }, [])
+  const groups = project?.groups
+    .map((group) => ({ ...group, members: group.members.filter((member) => member.name) }))
+    .filter((group) => group.members.length > 0) ?? []
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .45 }} className="relative isolate overflow-x-clip pb-20 text-white">
@@ -30,7 +42,12 @@ export default function TeamPage() {
         </div>
       </header>
       <main className="relative mx-auto max-w-7xl px-5 sm:px-10 lg:px-16">
-        {groupedMembers.map((group, index) => <motion.section key={group.category} initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .12 }} transition={{ duration: .6 }} className="border-b border-white/10 py-16 sm:py-20" aria-labelledby={`team-${index}`}><div className="mb-9 flex items-end justify-between gap-5"><div><p className="text-[10px] font-bold uppercase tracking-[.3em] text-red-500">Roster / {String(index + 1).padStart(2, '0')}</p><h2 id={`team-${index}`} className="mt-3 font-display text-3xl font-black uppercase tracking-tight sm:text-5xl">{headingFor(group.category)}</h2></div><span className="hidden text-right text-xs font-bold uppercase tracking-[.18em] text-white/25 sm:block">{String(group.members.length).padStart(2, '0')} members</span></div><div className="mx-auto grid max-w-7xl grid-cols-1 place-items-center justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3">{group.members.map((member) => <CrewCard key={member.id} name={member.name} role={member.role ?? 'Team Member'} image={member.imageUrl} project="aethon" />)}</div></motion.section>)}
+        {loading && <div className="py-16 text-center text-zinc-400">Loading team...</div>}
+        {!loading && error && <div className="py-16 text-center text-zinc-400">{error}</div>}
+        {!loading && !error && groups.map((group, index) => {
+          const members = group.members
+          return <motion.section key={group.id} initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .12 }} transition={{ duration: .6 }} className="border-b border-white/10 py-16 sm:py-20" aria-labelledby={`team-${index}`}><div className="mb-9 flex items-end justify-between gap-5"><div><p className="text-[10px] font-bold uppercase tracking-[.3em] text-red-500">Roster / {String(index + 1).padStart(2, '0')}</p><h2 id={`team-${index}`} className="mt-3 font-display text-3xl font-black uppercase tracking-tight sm:text-5xl">{headingFor(group.name)}</h2></div><span className="hidden text-right text-xs font-bold uppercase tracking-[.18em] text-white/25 sm:block">{String(members.length).padStart(2, '0')} members</span></div><div className="mx-auto grid max-w-7xl grid-cols-1 place-items-center justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3">{members.map((member) => <CrewCard key={member.id} name={member.name} role={member.role || 'Team Member'} image={resolveProjectImageUrl(member.imageUrl)} project="team" />)}</div></motion.section>
+        })}
         <section className="flex flex-col justify-between gap-7 py-16 sm:flex-row sm:items-end sm:py-20"><div><p className="text-xs font-bold uppercase tracking-[.28em] text-red-500">Next lap</p><h2 className="mt-3 max-w-xl font-display text-4xl font-black uppercase leading-[.9] sm:text-6xl">There is always room in the workshop.</h2></div><Link to="/about" className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[.16em] text-red-400 transition hover:text-white">Discover MITS Motorsports <ArrowUpRight className="h-4 w-4" /></Link></section>
       </main>
     </motion.div>

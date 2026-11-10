@@ -64,7 +64,7 @@ export function mountTeamRoutes(app, { ProjectModel = Project, GroupModel = Grou
   for (const path of ['/api/admin/groups/:id', '/api/admin/members/:id']) app.use(path, (request, response, next) => { if (!idSchema(request.params.id)) return error(response, 400, 'Invalid id.'); next() })
 
   app.get('/api/projects', limiter, async (_request, response) => {
-    const projects = await ProjectModel.find({}).sort({ slug: 1 })
+    const projects = await ProjectModel.find({ slug: { $nin: ['team'] } }).sort({ slug: 1 })
     return response.set('Cache-Control', 'public, max-age=60').json({ success: true, data: projects.map((project) => ({ slug: project.slug, title: project.title, tagline: project.tagline, heroImageUrl: imageUrl(project.heroImage) })) })
   })
   app.get('/api/projects/:slug', limiter, async (request, response) => {
@@ -75,7 +75,7 @@ export function mountTeamRoutes(app, { ProjectModel = Project, GroupModel = Grou
     const data = projectFields(project)
     data.groups = groups.map((group) => ({ id: String(group._id), name: group.name, members: members.filter((member) => String(member.group) === String(group._id)).map(publicMember) }))
     data.memberCount = members.length
-    return response.set('Cache-Control', 'public, max-age=60').json({ success: true, data })
+    return response.set('Cache-Control', 'no-cache').json({ success: true, data })
   })
   app.get('/api/images/:id', async (request, response) => {
     if (!idSchema(request.params.id)) return error(response, 404, 'Image not found.')
@@ -88,7 +88,7 @@ export function mountTeamRoutes(app, { ProjectModel = Project, GroupModel = Grou
   })
 
   app.get('/api/admin/projects', authenticate, async (_request, response) => {
-    const projects = await ProjectModel.find({}).sort({ slug: 1 })
+    const projects = await ProjectModel.find({ slug: { $nin: ['team'] } }).sort({ slug: 1 })
     return response.json({ success: true, data: projects.map(projectFields) })
   })
   app.get('/api/admin/projects/:slug', authenticate, async (request, response) => {

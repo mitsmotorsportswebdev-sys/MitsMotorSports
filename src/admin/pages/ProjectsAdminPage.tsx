@@ -9,6 +9,7 @@ export default function ProjectsAdminPage() {
 
   useEffect(() => {
     void adminApi.getAdminProjects().then(async (items) => {
+      items = items.filter((item) => item.slug !== 'team')
       const detailed = await Promise.all(items.map(async (item) => {
         const project = await adminApi.getAdminProject(item.slug)
         return { ...item, memberCount: project.groups.reduce((count, group) => count + group.members.filter((member) => member.visible).length, 0) }

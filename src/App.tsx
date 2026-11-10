@@ -46,7 +46,7 @@ export default function App() {
           <Route path="/admin/about" element={<Navigate to="/admin" replace />} />
           <Route path="/admin/projects" element={<ProjectsAdminPage />} />
           <Route path="/admin/projects/:slug" element={<ProjectAdminPage />} />
-          <Route path="/admin/team" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/team" element={<ProjectAdminPage fixedSlug="team" />} />
           <Route path="/admin/alumni" element={<Navigate to="/admin" replace />} />
           <Route path="/admin/sponsors" element={<Navigate to="/admin" replace />} />
           <Route path="/admin/gallery" element={<Navigate to="/admin" replace />} />
