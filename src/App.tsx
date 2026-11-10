@@ -5,6 +5,10 @@ import AdminLoginPage from './admin/pages/AdminLoginPage'
 import ChangePasswordPage from './admin/pages/ChangePasswordPage'
 import DashboardPage from './admin/pages/DashboardPage'
 import EventsPage from './admin/pages/EventsPage'
+import EventFormPage from './admin/pages/EventFormPage'
+import EventRegistrationsPage from './admin/pages/EventRegistrationsPage'
+import ProjectsAdminPage from './admin/pages/ProjectsAdminPage'
+import ProjectAdminPage from './admin/pages/ProjectAdminPage'
 import { getUser } from './admin/services/auth'
 import SiteLayout from './layouts/SiteLayout'
 import AboutPage from './pages/AboutPage'
@@ -34,10 +38,14 @@ export default function App() {
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<DashboardPage />} />
           <Route path="/admin/events" element={<EventsPage />} />
+          <Route path="/admin/events/new" element={<EventFormPage />} />
+          <Route path="/admin/events/:id/edit" element={<EventFormPage />} />
+          <Route path="/admin/events/:id/registrations" element={<EventRegistrationsPage />} />
           <Route path="/admin/security" element={<ChangePasswordPage />} />
           <Route path="/admin/home" element={<Navigate to="/admin" replace />} />
           <Route path="/admin/about" element={<Navigate to="/admin" replace />} />
-          <Route path="/admin/projects" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/projects" element={<ProjectsAdminPage />} />
+          <Route path="/admin/projects/:slug" element={<ProjectAdminPage />} />
           <Route path="/admin/team" element={<Navigate to="/admin" replace />} />
           <Route path="/admin/alumni" element={<Navigate to="/admin" replace />} />
           <Route path="/admin/sponsors" element={<Navigate to="/admin" replace />} />

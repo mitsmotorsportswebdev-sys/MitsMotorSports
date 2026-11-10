@@ -5,9 +5,10 @@ export type EngineeringSectionProps = {
   title: string
   description: string
   bullets: string[]
+  sectionLabel?: string
 }
 
-export default function EngineeringSection({ title, description, bullets }: EngineeringSectionProps) {
+export default function EngineeringSection({ title, description, bullets, sectionLabel }: EngineeringSectionProps) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 30 }}
@@ -19,7 +20,9 @@ export default function EngineeringSection({ title, description, bullets }: Engi
       <div className="mx-auto max-w-7xl border border-white/10 bg-[#0d0d0d] p-6 sm:p-8 lg:p-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-[10px] font-bold uppercase tracking-[.32em] text-red-500">Engineering focus</p>
+            <p className="text-[10px] font-bold uppercase tracking-[.32em] text-red-500">
+              {sectionLabel ?? 'Engineering focus'}
+            </p>
             <h3 className="mt-4 font-display text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">{title}</h3>
           </div>
           <div className="h-px w-full max-w-xs bg-gradient-to-r from-red-700 to-transparent" />

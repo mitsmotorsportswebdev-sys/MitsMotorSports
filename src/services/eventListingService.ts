@@ -1,87 +1,79 @@
-export type EventRegistrationState = 'open' | 'full-waiting-list' | 'closed' | 'ended'
+export type RegistrationState = 'open' | 'closed' | 'ended'
 
 export type PublicEvent = {
-  slug: string
-  category: string
+  id: string
   title: string
-  tagline: string
   description: string
   image: string
-  date: string
+  eventDate: string
   time: string
   venue: string
-  location: string
-  address: string
-  entryFee: string
-  eventType: string
-  eligibility: string
-  highlights: string[]
-  rules: string[]
-  eligibilityDetails: string[]
-  schedule: { time: string; title: string; description: string }[]
-  venueDescription: string
+  allowedYears: number[]
+  participation: 'individual' | 'group'
+  minTeamSize?: number
+  maxTeamSize?: number
+  collegeOnly: boolean
   seatLimit: number
   seatsLeft: number
   closingAt: string
-  registrationState: EventRegistrationState
-  ended: boolean
+  registrationState: RegistrationState
 }
 
-type EventsResponse = {
-  success: boolean
-  data: PublicEvent[]
-  message?: string
+export type FieldErrors = Record<string, string[]>
+
+export class EventListingError extends Error {
+  status: number
+  fields?: FieldErrors
+  constructor(message: string, status = 0, fields?: FieldErrors) {
+    super(message)
+    this.name = 'EventListingError'
+    this.status = status
+    this.fields = fields
+  }
 }
 
 const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '')
 
-export class EventListingError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'EventListingError'
-  }
-}
-
-export async function getPublicEvents(): Promise<PublicEvent[]> {
+async function request<T>(path: string, init?: RequestInit) {
   let response: Response
   try {
-    response = await fetch(`${apiUrl}/events`)
+    response = await fetch(`${apiUrl}${path}`, { ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) } })
   } catch {
-    throw new EventListingError('The events could not be loaded. Please check your connection and try again.')
+    throw new EventListingError('The events service could not be reached. Please try again.')
   }
-
-  let payload: EventsResponse | null = null
-  try {
-    payload = await response.json() as EventsResponse
-  } catch {
-    throw new EventListingError('The events response was not valid. Please try again.')
+  let payload: { success?: boolean; data?: T; message?: string; fields?: FieldErrors } | null = null
+  try { payload = await response.json() } catch { payload = null }
+  if (!response.ok || !payload?.success) {
+    throw new EventListingError(payload?.message || 'The request could not be completed. Please try again.', response.status, payload?.fields)
   }
-
-  if (!response.ok || !payload.success) {
-    throw new EventListingError(payload.message || 'The events could not be loaded. Please try again.')
-  }
-
-  return payload.data
+  return payload.data as T
 }
 
-export async function getPublicEvent(slug: string): Promise<PublicEvent> {
-  let response: Response
-  try {
-    response = await fetch(`${apiUrl}/events/${encodeURIComponent(slug)}`)
-  } catch {
-    throw new EventListingError('The event could not be loaded. Please check your connection and try again.')
-  }
+export function getPublicEvents() {
+  return request<PublicEvent[]>('/events')
+}
 
-  let payload: { success: boolean; data?: PublicEvent; message?: string } | null = null
-  try {
-    payload = await response.json() as { success: boolean; data?: PublicEvent; message?: string }
-  } catch {
-    throw new EventListingError('The event response was not valid. Please try again.')
-  }
+export function getPublicEvent(id: string) {
+  return request<PublicEvent>(`/events/${encodeURIComponent(id)}`)
+}
 
-  if (!response.ok || !payload.success || !payload.data) {
-    throw new EventListingError(payload.message || (response.status === 404 ? 'Event not found.' : 'The event could not be loaded. Please try again.'))
-  }
+export type RegistrationMember = { fullName: string; department?: string; year: number; collegeId?: string }
+export type RegistrationPayload = {
+  fullName: string
+  email: string
+  mobile: string
+  department?: string
+  year: number
+  collegeId?: string
+  collegeName?: string
+  teamName?: string
+  members?: RegistrationMember[]
+  website: string
+}
 
-  return payload.data
+export function registerForEvent(id: string, payload: RegistrationPayload) {
+  return request<{ id: string; status: string }>(`/events/${encodeURIComponent(id)}/registrations`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }

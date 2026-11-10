@@ -123,6 +123,8 @@ export interface AdminEvent extends Omit<EventPayload, 'closingAt'> {
   confirmedCount: number
   waitlistCount: number
   needsContactingCount: number
+  registrationsDeleteAt?: string
+  retentionDays?: number
 }
 
 export interface AuthResponse {

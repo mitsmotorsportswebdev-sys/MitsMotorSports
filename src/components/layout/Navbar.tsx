@@ -25,7 +25,9 @@ export default function Navbar() {
   const itemClass = ({ isActive }: { isActive: boolean }) => `nav-link ${isActive ? 'text-red-500' : ''}`
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-white/10 bg-black/70 py-2 shadow-xl shadow-black/30 backdrop-blur-md' : 'py-4'}`}>
+    <>
+    <style>{`.nav-glass{background:rgba(0,0,0,.35);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.08)}@supports not ((backdrop-filter:blur(1px))){.nav-glass{background:rgba(0,0,0,.85)}}`}</style>
+    <header className={`nav-glass fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? 'py-2 shadow-xl shadow-black/30' : 'py-4'}`}>
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 lg:px-8">
         <Link className="flex items-center gap-2" to="/" aria-label="MITS Motorsports home">
           <img className="h-10 w-10 rounded-full object-cover" src={logo} alt="MITS Motorsports emblem" />
@@ -45,7 +47,7 @@ export default function Navbar() {
         </nav>
         <button className="rounded p-2 text-white transition hover:text-red-500 xl:hidden" aria-label="Toggle navigation menu" onClick={() => setOpen((value) => !value)}>{open ? <X /> : <Menu />}</button>
       </div>
-      <AnimatePresence>{open && <motion.nav initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden border-t border-white/10 bg-black/95 xl:hidden">
+      <AnimatePresence>{open && <motion.nav initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="nav-glass overflow-hidden border-t border-white/10 xl:hidden">
         <div className="space-y-1 px-4 py-4">
           {navigation.slice(0, 3).map((item) => <NavLink key={item.to} className={itemClass} to={item.to}>{item.label}</NavLink>)}
           <button className="nav-link flex w-full items-center justify-between" onClick={() => setProjectsOpen((value) => !value)}>Projects <ChevronDown className={`h-4 w-4 transition ${projectsOpen ? 'rotate-180' : ''}`} /></button>
@@ -54,5 +56,6 @@ export default function Navbar() {
         </div>
       </motion.nav>}</AnimatePresence>
     </header>
+    </>
   )
 }

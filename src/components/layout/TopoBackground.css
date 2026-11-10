@@ -21,3 +21,7 @@
   height: 100%;
   contain: strict;
 }
+
+.site-layout:has(.event-detail-page) > footer {
+  background: transparent;
+}

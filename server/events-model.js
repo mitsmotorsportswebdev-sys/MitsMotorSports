@@ -18,6 +18,7 @@ const eventSchema = new mongoose.Schema({
   seatLimit: { type: Number, required: true, min: 1, max: 100000 },
   closingAt: { type: Date, required: true },
   published: { type: Boolean, default: false },
+  registrationOpen: { type: Boolean, default: true },
   participation: { type: String, enum: ['individual', 'group'], required: true },
   minTeamSize: { type: Number },
   maxTeamSize: { type: Number },
@@ -38,9 +39,11 @@ const registrationSchema = new mongoose.Schema({
   headcount: { type: Number, required: true, min: 1 },
   status: { type: String, enum: ['pending', 'approved'], default: 'pending' },
   registeredAt: { type: Date, default: Date.now },
+  expireAt: { type: Date },
 }, { versionKey: false })
 
 registrationSchema.index({ event: 1, email: 1 }, { unique: true })
+registrationSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 })
 
 export const Event = mongoose.models.Event || mongoose.model('Event', eventSchema)
 export const Registration = mongoose.models.Registration || mongoose.model('Registration', registrationSchema)

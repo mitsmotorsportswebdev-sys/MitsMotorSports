@@ -8,7 +8,14 @@ export const limits = {
 }
 
 const text = (max) => z.string().trim().min(1).max(max)
-const image = z.string().trim().refine((value) => /^https?:\/\/[^\s]+$/i.test(value) || /^\/[^/][^\s]*$/.test(value), 'Image must be an http(s) URL or a site path beginning with /.')
+const image = z.string().trim().max(500).refine((value) => {
+  if (/^\/[^/]/.test(value)) return true
+  try {
+    return new URL(value).protocol === 'https:'
+  } catch {
+    return false
+  }
+}, 'Image must be an https URL or a site path beginning with /.')
 const datePattern = /^\d{4}-\d{2}-\d{2}$/
 
 export const eventSchema = z.object({
@@ -45,11 +52,15 @@ function validateEvent(value, context) {
 }
 
 export function eventEndUtc(eventDate) { return new Date(`${eventDate}T18:29:59.999Z`) }
+export function registrationExpiry(eventDate, days) {
+  return new Date(eventEndUtc(eventDate).getTime() + days * 24 * 60 * 60 * 1000)
+}
 export function isEnded(event) { return eventEndUtc(event.eventDate).getTime() < Date.now() }
 export function validateEventDates(eventDate, closingAt) { return closingAt.getTime() <= eventEndUtc(eventDate).getTime() }
 
 export function registrationState(event, seatsUsed = 0) {
   if (isEnded(event)) return 'ended'
+  if (event.registrationOpen === false) return 'closed'
   const minimum = event.participation === 'group' ? event.minTeamSize : 1
   if (!event.published || event.closingAt.getTime() <= Date.now() || event.seatLimit - seatsUsed < minimum) return 'closed'
   return 'open'

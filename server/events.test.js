@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { eventEndUtc, eventSchema, formatIndiaDateTime, publicEvent, registrationSchemaFor, registrationState } from './event-utils.js'
+import { eventEndUtc, eventSchema, formatIndiaDateTime, publicEvent, registrationExpiry, registrationSchemaFor, registrationState } from './event-utils.js'
+import { loadConfig } from './config.js'
 
 const event = (overrides = {}) => ({
   title: 'Test event', description: 'Description',
@@ -15,11 +16,29 @@ const leader = (overrides = {}) => ({
   department: 'CSA', year: 1, collegeId: '22CSA1', ...overrides,
 })
 
-test('event validation accepts site image paths and rejects invalid dates', () => {
+test('event validation accepts secure image URLs and site paths', () => {
   assert.equal(eventSchema.safeParse(event()).success, true)
   assert.equal(eventSchema.safeParse(event({ image: '//cdn.example.com/a.jpg' })).success, false)
+  assert.equal(eventSchema.safeParse(event({ image: 'http://cdn.example.com/a.jpg' })).success, false)
+  assert.equal(eventSchema.safeParse(event({ image: 'https://cdn.example.com/a.jpg' })).success, true)
+  assert.equal(eventSchema.safeParse(event({ image: '/images/event.jpg' })).success, true)
+  assert.equal(eventSchema.safeParse(event({ image: '//cdn.example.com/a.jpg' })).success, false)
+  assert.equal(eventSchema.safeParse(event({ image: `/${'a'.repeat(500)}` })).success, true)
+  assert.equal(eventSchema.safeParse(event({ image: `/${'a'.repeat(501)}` })).success, false)
   assert.equal(eventSchema.safeParse(event({ eventDate: '2099-02-29' })).success, false)
   assert.equal(eventEndUtc('2026-12-20').toISOString(), '2026-12-20T18:29:59.999Z')
+})
+
+test('registration expiry is the India event end plus retention days', () => {
+  assert.equal(registrationExpiry('2026-12-20', 90).toISOString(), '2027-03-20T18:29:59.999Z')
+})
+
+test('registration retention config validates its range', () => {
+  const base = { MONGODB_URI: 'mongodb://localhost/test', JWT_SECRET: 'a'.repeat(32), CLIENT_URL: 'http://localhost', ADMIN_EMAIL: 'admin@example.com' }
+  assert.equal(loadConfig(base).retentionDays, 90)
+  assert.equal(loadConfig({ ...base, REGISTRATION_RETENTION_DAYS: '3650' }).retentionDays, 3650)
+  assert.throws(() => loadConfig({ ...base, REGISTRATION_RETENTION_DAYS: '0' }), /REGISTRATION_RETENTION_DAYS/)
+  assert.throws(() => loadConfig({ ...base, REGISTRATION_RETENTION_DAYS: '90.5' }), /REGISTRATION_RETENTION_DAYS/)
 })
 
 test('college email, department, and college ID rules are enforced', () => {
@@ -53,4 +72,9 @@ test('registration state uses student seats and the India event end', () => {
   assert.equal(registrationState(event({ eventDate: '2000-01-01' }), 0), 'ended')
   assert.equal(publicEvent(event(), 46).seatsLeft, 4)
   assert.match(formatIndiaDateTime(new Date('2026-10-22T10:00:00Z')), /IST$/)
+})
+
+test('manual registration closure takes precedence except for ended events', () => {
+  assert.equal(registrationState(event({ registrationOpen: false }), 0), 'closed')
+  assert.equal(registrationState(event({ registrationOpen: false, eventDate: '2000-01-01' }), 0), 'ended')
 })

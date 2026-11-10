@@ -1,13 +1,14 @@
 import { motion } from 'framer-motion'
-import TeamMemberCard, { type TeamMemberCardProps } from './TeamMemberCard'
+import CrewCard from '../crew/CrewCard'
 
 export type DepartmentSectionProps = {
   title: string
-  members: Array<TeamMemberCardProps & { id?: string; active?: boolean; displayOrder?: number }>
+  members: Array<{ id?: string; name: string; role?: string; imageUrl?: string; active?: boolean; displayOrder?: number }>
+  project: 'aethon' | 'ebaja'
   className?: string
 }
 
-export default function DepartmentSection({ title, members, className = '' }: DepartmentSectionProps) {
+export default function DepartmentSection({ title, members, project, className = '' }: DepartmentSectionProps) {
   const orderedMembers = [...members]
     .filter((member) => member.active !== false)
     .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
@@ -30,16 +31,14 @@ export default function DepartmentSection({ title, members, className = '' }: De
         <div className="mx-auto mt-4 h-px w-20 bg-gradient-to-r from-transparent via-red-600 to-transparent" />
       </div>
 
-      <div className="grid grid-cols-1 place-items-center justify-items-center gap-8 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 place-items-center justify-items-center gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {orderedMembers.map((member) => (
-          <TeamMemberCard
+          <CrewCard
             key={member.id ?? `${member.name}-${member.role ?? 'member'}`}
             name={member.name}
-            role={member.role}
-            imageUrl={member.imageUrl}
-            department={member.department}
-            email={member.email}
-            linkedin={member.linkedin}
+            role={member.role ?? 'Team Member'}
+            image={member.imageUrl}
+            project={project}
           />
         ))}
       </div>

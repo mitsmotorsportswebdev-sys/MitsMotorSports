@@ -32,25 +32,30 @@ const iconMap: Record<string, LucideIcon> = {
 }
 
 export type TechnicalSpecsProps = {
-  specs: ProjectSpecification[]
+  specs: Array<{ id?: string; label: string; value: string; description?: string; icon?: string }>
+  sectionLabel?: string
+  sectionTitle?: string
 }
 
-export default function TechnicalSpecs({ specs }: TechnicalSpecsProps) {
+export default function TechnicalSpecs({ specs, sectionLabel, sectionTitle }: TechnicalSpecsProps) {
   return (
     <section id="technical-specs" className="relative overflow-hidden px-4 py-20 sm:px-6 lg:px-8">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(127,29,29,0.18),transparent_32%)]" />
       <div className="relative mx-auto max-w-7xl">
         <div className="mb-12 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-[.32em] text-red-500">Technical package</p>
+          <p className="text-[10px] font-bold uppercase tracking-[.32em] text-red-500">
+            {sectionLabel ?? 'Technical package'}
+          </p>
           <h2 className="mt-4 font-display text-4xl font-black uppercase tracking-tight text-white sm:text-5xl">
-            Technical Specifications
+            {sectionTitle ?? 'Technical Specifications'}
           </h2>
           <div className="mx-auto mt-5 h-px w-24 bg-gradient-to-r from-transparent via-red-600 to-transparent" />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {specs.map((spec, index) => {
-            const Icon = iconMap[spec.icon] ?? Workflow
+            const iconKey = typeof spec.icon === 'string' ? spec.icon.toLowerCase().trim() : ''
+            const Icon = (iconKey && iconMap[iconKey]) || Workflow
 
             return (
               <motion.article

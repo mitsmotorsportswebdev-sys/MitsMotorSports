@@ -7,6 +7,8 @@ import jwt from 'jsonwebtoken'
 import { z } from 'zod'
 import { mountEventRoutes } from './event-routes.js'
 import { Event, Registration } from './events-model.js'
+import { mountTeamRoutes } from './team-routes.js'
+import { Group, Image, Member, Project } from './team-model.js'
 
 const dummyHash = bcrypt.hashSync('dummy-password-that-is-never-valid', 12)
 const credentialsSchema = z.object({ email: z.string().trim().email(), password: z.string() })
@@ -98,6 +100,7 @@ export function createApp({ Admin, config, EventModel = Event, RegistrationModel
     Registration: RegistrationModel,
     config, authenticate,
   })
+  mountTeamRoutes(app, { ProjectModel: Project, GroupModel: Group, MemberModel: Member, ImageModel: Image, authenticate, config })
 
   return app
 }

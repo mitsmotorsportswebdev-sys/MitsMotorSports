@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { CalendarDays, LayoutDashboard, LockKeyhole, LogOut, Menu, PanelLeftClose, X } from 'lucide-react'
+import { CalendarDays, FolderKanban, LayoutDashboard, LockKeyhole, LogOut, Menu, PanelLeftClose, X } from 'lucide-react'
 import { clearAuth, getUser } from '../services/auth'
 import '../styles/admin.css'
 
 const navigation = [
   { label: 'Overview', path: '/admin', icon: LayoutDashboard, end: true },
   { label: 'Events', path: '/admin/events', icon: CalendarDays },
+  { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
   { label: 'Security', path: '/admin/security', icon: LockKeyhole },
 ]
 

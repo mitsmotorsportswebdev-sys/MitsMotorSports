@@ -10,16 +10,22 @@ Event bodies are strict and contain:
 
 - `title` (1-180), `description` (1-3000), `image`, `eventDate`, `time` (1-80)
   and `venue` (1-180)
-- `image` is either an `http://` or `https://` URL, or a site path beginning
-  with one `/`
+- `image` is at most 500 characters and is either an `https://` URL, or a site
+  path beginning with exactly one `/`
 - `allowedYears`: one to four unique values from 1 through 4
 - `seatLimit`: integer from 1 through 100000
 - `closingAt`: no later than 23:59:59.999 IST on `eventDate`
 - `published`: boolean, default `false`
+- `registrationOpen`: admin-only manual switch, default `true`; existing events
+  without this field are treated as open
 - `participation`: `individual` or `group`
 - `minTeamSize` and `maxTeamSize`: required only for groups, from 2 through
   20, with `maxTeamSize >= minTeamSize`
 - `collegeOnly`: boolean, default `true`
+
+Registration data is deleted automatically by MongoDB's TTL monitor at
+approximately one-minute intervals. The retention period is configured with
+`REGISTRATION_RETENTION_DAYS` (default `90`, integer from `1` through `3650`).
 
 ## Registration fields
 
@@ -72,6 +78,7 @@ All require the existing admin bearer authentication:
 - `POST /api/admin/events`
 - `PATCH /api/admin/events/:id`
 - `DELETE /api/admin/events/:id` with `{ "confirm": true }`
+- `PATCH /api/admin/events/:id/registration` with `{ "open": true|false }`
 - `GET /api/admin/events/:id/registrations`
 - `PATCH /api/admin/registrations/:id`
 - `POST /api/admin/registrations/:id/approve`
@@ -81,6 +88,14 @@ All require the existing admin bearer authentication:
 
 The registration list supports `?search=` across name, email, mobile, and
 college ID, plus `?status=pending|approved`.
+
+The admin event list includes `registrationOpen`. Setting it to `false` closes
+registrations manually; reopening it does not override a full event or a past
+closing time.
+
+Admin event list and single-event responses also include `registrationsDeleteAt`
+(ISO timestamp) and `retentionDays`. The registrations page displays this
+deadline; export registrations before it.
 
 Exports contain approved entries only by default. With
 `?includePending=true`, all entries are exported with a Status column. There
@@ -97,7 +112,14 @@ deletes all event data and is never run automatically.
 The old import script is intentionally removed; events are created from the
 admin panel.
 
-## Stage 1 scope
+## Refreshing registration expiry
 
-Frontend code is intentionally unchanged. The current public form will not
-work with this backend until Stage 3 updates the frontend payloads and routes.
+Run `npm run refresh-expiry` after changing `REGISTRATION_RETENTION_DAYS` or to
+backfill registrations created before expiry tracking. It recomputes every
+registration's `expireAt` without deleting data and prints the number refreshed.
+
+## Implementation status
+
+The public events listing, event details, registration drawer, and admin event
+screens are implemented against the API. Registration notification email delivery
+is not included in the current implementation.

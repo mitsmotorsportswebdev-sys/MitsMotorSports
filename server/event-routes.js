@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs'
 import rateLimit from 'express-rate-limit'
 import mongoose from 'mongoose'
-import { eventSchema, formatIndiaDateTime, publicEvent, registrationSchema, registrationSchemaFor, registrationState } from './event-utils.js'
+import { eventSchema, formatIndiaDateTime, publicEvent, registrationExpiry, registrationSchema, registrationSchemaFor, registrationState } from './event-utils.js'
 
 const idSchema = (value) => typeof value === 'string' && /^[a-f\d]{24}$/i.test(value)
 
@@ -40,7 +40,7 @@ async function loadEventWithSeats(Event, Registration, id, publishedOnly = false
   return { event, seatsUsed: totals.get(id)?.seatsUsed || 0 }
 }
 
-export async function registerEvent({ Event, Registration, eventId, data }) {
+export async function registerEvent({ Event, Registration, eventId, data, retentionDays }) {
   const loaded = await loadEventWithSeats(Event, Registration, eventId, true)
   if (!loaded) throw Object.assign(new Error('Event not found.'), { status: 404 })
   const { event, seatsUsed } = loaded
@@ -49,7 +49,7 @@ export async function registerEvent({ Event, Registration, eventId, data }) {
   if (state !== 'open') throw Object.assign(new Error('Registration is closed.'), { status: 409 })
   const headcount = 1 + (data.members?.length || 0)
   if (headcount > event.seatLimit - seatsUsed) throw Object.assign(new Error(`Only ${Math.max(0, event.seatLimit - seatsUsed)} seats left.`), { status: 409 })
-  const item = await Registration.create({ ...data, event: event._id, headcount, website: undefined })
+  const item = await Registration.create({ ...data, event: event._id, headcount, expireAt: registrationExpiry(event.eventDate, retentionDays), website: undefined })
   const later = await Registration.aggregate([
     { $match: { event: event._id, _id: { $lte: item._id } } },
     { $group: { _id: null, seatsUsed: { $sum: '$headcount' } } },
@@ -64,6 +64,18 @@ export async function registerEvent({ Event, Registration, eventId, data }) {
 export function mountEventRoutes(app, { Event, Registration, config, authenticate }) {
   app.use('/api/admin/events', (_request, response, next) => { response.set('Cache-Control', 'no-store'); next() })
   app.use('/api/admin/registrations', (_request, response, next) => { response.set('Cache-Control', 'no-store'); next() })
+  app.use('/api/events/:id', (request, response, next) => {
+    if (!idSchema(request.params.id)) return error(response, 404, 'Event not found.')
+    next()
+  })
+  app.use('/api/admin/events/:id', (request, response, next) => {
+    if (!idSchema(request.params.id)) return error(response, 400, 'Invalid event.')
+    next()
+  })
+  app.use('/api/admin/registrations/:id', (request, response, next) => {
+    if (!idSchema(request.params.id)) return error(response, 400, 'Invalid registration.')
+    next()
+  })
   const registerLimiter = rateLimit({
     windowMs: config.registrationRateWindowMs ?? 600_000, limit: config.registrationRateLimit ?? 10,
     standardHeaders: true, legacyHeaders: false,
@@ -86,14 +98,15 @@ export function mountEventRoutes(app, { Event, Registration, config, authenticat
     if (typeof request.body?.website === 'string' && request.body.website.trim()) {
       return response.status(201).json({ success: true, data: { id: new mongoose.Types.ObjectId().toString(), status: 'pending' } })
     }
-    const basic = parseValidation(registrationSchema.safeParse(request.body), response, 'Please correct the highlighted fields.')
-    if (!basic) return undefined
     const loaded = await loadEventWithSeats(Event, Registration, request.params.id, true)
     if (!loaded) return error(response, 404, 'Event not found.')
+    if (loaded.event.registrationOpen === false) return error(response, 409, 'Registration is closed.')
+    const basic = parseValidation(registrationSchema.safeParse(request.body), response, 'Please correct the highlighted fields.')
+    if (!basic) return undefined
     const parsed = parseValidation(registrationSchemaFor(loaded.event).safeParse(request.body), response, 'Please correct the highlighted fields.')
     if (!parsed) return undefined
     try {
-      return response.status(201).json({ success: true, data: await registerEvent({ Event, Registration, eventId: request.params.id, data: parsed }) })
+      return response.status(201).json({ success: true, data: await registerEvent({ Event, Registration, eventId: request.params.id, data: parsed, retentionDays: config.retentionDays }) })
     } catch (registrationError) {
       if (registrationError.code === 11000) return error(response, 409, 'This email is already registered for this event.')
       if (registrationError.status) return error(response, registrationError.status, registrationError.message)
@@ -101,14 +114,36 @@ export function mountEventRoutes(app, { Event, Registration, config, authenticat
     }
   })
 
+
   app.get('/api/admin/events', authenticate, async (_request, response) => {
     const events = await Event.find({}).sort({ createdAt: -1 })
     const totals = await seatTotals(Registration, events.map((event) => String(event._id)))
     const data = events.map((event) => {
       const total = totals.get(String(event._id)) || {}
-      return { ...publicEvent(event, total.seatsUsed || 0), _id: String(event._id), published: event.published, seatsUsed: total.seatsUsed || 0, entries: total.entries || 0, pending: total.pending || 0 }
+      return { ...publicEvent(event, total.seatsUsed || 0), _id: String(event._id), published: event.published, registrationOpen: event.registrationOpen !== false, seatsUsed: total.seatsUsed || 0, entries: total.entries || 0, pending: total.pending || 0, registrationsDeleteAt: registrationExpiry(event.eventDate, config.retentionDays).toISOString(), retentionDays: config.retentionDays }
     })
+
     return response.json({ success: true, data })
+  })
+
+  app.patch('/api/admin/events/:id/registration', authenticate, async (request, response) => {
+      if (!idSchema(request.params.id)) return error(response, 400, 'Invalid event.')
+      const body = request.body
+      if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.open !== 'boolean' || Object.keys(body).length !== 1) {
+        return error(response, 400, 'A boolean open value is required.')
+      }
+      const event = await Event.findByIdAndUpdate(request.params.id, { registrationOpen: body.open }, { new: true })
+      if (!event) return error(response, 404, 'Event not found.')
+      const total = (await seatTotals(Registration, [String(event._id)])).get(String(event._id)) || {}
+      return response.json({ success: true, data: { ...publicEvent(event, total.seatsUsed || 0), _id: String(event._id), published: event.published, registrationOpen: event.registrationOpen !== false, seatsUsed: total.seatsUsed || 0, entries: total.entries || 0, pending: total.pending || 0, registrationsDeleteAt: registrationExpiry(event.eventDate, config.retentionDays).toISOString(), retentionDays: config.retentionDays } })
+    })
+
+  app.get('/api/admin/events/:id', authenticate, async (request, response) => {
+    if (!idSchema(request.params.id)) return error(response, 400, 'Invalid event.')
+    const event = await Event.findById(request.params.id)
+    if (!event) return error(response, 404, 'Event not found.')
+    const total = (await seatTotals(Registration, [request.params.id])).get(request.params.id) || {}
+    return response.json({ success: true, data: { ...publicEvent(event, total.seatsUsed || 0), _id: String(event._id), published: event.published, registrationOpen: event.registrationOpen !== false, seatsUsed: total.seatsUsed || 0, entries: total.entries || 0, pending: total.pending || 0, registrationsDeleteAt: registrationExpiry(event.eventDate, config.retentionDays).toISOString(), retentionDays: config.retentionDays } })
   })
 
   app.post('/api/admin/events', authenticate, async (request, response) => {
@@ -127,6 +162,9 @@ export function mountEventRoutes(app, { Event, Registration, config, authenticat
       return error(response, 409, 'Participation and college-only settings cannot change after registrations exist.')
     }
     const event = await Event.findByIdAndUpdate(current._id, parsed, { new: true, runValidators: true })
+    if (parsed.eventDate !== current.eventDate) {
+      await Registration.updateMany({ event: current._id }, { expireAt: registrationExpiry(parsed.eventDate, config.retentionDays) })
+    }
     return response.json({ success: true, data: event })
   })
 

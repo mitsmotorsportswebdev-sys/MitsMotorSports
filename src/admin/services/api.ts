@@ -5,7 +5,6 @@ import type {
   AdminUser,
   ApiEnvelope,
   AuthResponse,
-  EventPayload,
   GalleryItem,
   HomeContent,
   ImageAsset,
@@ -17,6 +16,29 @@ import type {
 
 const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '')
 
+export function resolveImageUrl(url?: string | null): string {
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url) || url.startsWith('blob:') || url.startsWith('data:')) return url
+  if (!apiUrl) return url
+  if (/^https?:\/\//i.test(apiUrl)) {
+    try {
+      const parsed = new URL(apiUrl)
+      const origin = parsed.origin
+      if (url.startsWith('/')) {
+        const apiPath = parsed.pathname.replace(/\/$/, '')
+        if (apiPath && (url === apiPath || url.startsWith(`${apiPath}/`))) {
+          return `${origin}${url}`
+        }
+        return `${origin}${apiPath}${url}`
+      }
+      return `${origin}/${url}`
+    } catch {
+      return url
+    }
+  }
+  return url
+}
+
 export class ApiError extends Error {
   status: number
   fields?: Record<string, string[]>
@@ -27,7 +49,13 @@ export class ApiError extends Error {
     this.status = status
     this.fields = fields
   }
+
 }
+
+export type AdminMember = { id: string; name: string; role: string; extras: string; imageUrl: string | null; imageId?: string | null; groupId: string; order: number; visible: boolean }
+export type AdminGroup = { id: string; name: string; order: number; members: AdminMember[] }
+export type AdminProjectSummary = { id: string; slug: string; title: string; tagline: string; heroImageUrl: string | null; memberCount?: number }
+export type AdminProject = AdminProjectSummary & { overview: string; stats: Array<{ label: string; value: string }>; specs: Array<{ label: string; value: string; description?: string; icon?: string }>; sections: Array<{ title: string; description: string; bullets: string[] }>; groups: AdminGroup[] }
 
 async function request<T>(path: string, init: RequestInit = {}, authenticated = false): Promise<T> {
   const headers = new Headers(init.headers)
@@ -91,6 +119,21 @@ export const adminApi = {
   getAbout: () => request<AboutContent | null>('/about'),
   updateAbout: (content: Partial<AboutContent>) => request<AboutContent>('/admin/about', { method: 'PUT', body: JSON.stringify(content) }, true),
   getProjects: () => request<Project[]>('/projects'),
+  getAdminProjects: () => request<AdminProjectSummary[]>('/admin/projects', {}, true),
+  getAdminProject: (slug: string) => request<AdminProject>(`/admin/projects/${slug}`, {}, true),
+  updateAdminProject: (slug: string, project: Partial<AdminProject>) => request<AdminProject>(`/admin/projects/${slug}`, { method: 'PATCH', body: JSON.stringify(project) }, true),
+  createGroup: (slug: string, name: string) => request(`/admin/projects/${slug}/groups`, { method: 'POST', body: JSON.stringify({ name }) }, true),
+  renameGroup: (id: string, name: string) => request(`/admin/groups/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }, true),
+  moveGroup: (id: string, direction: 'up' | 'down') => request(`/admin/groups/${id}/move`, { method: 'POST', body: JSON.stringify({ direction }) }, true),
+  deleteGroup: (id: string) => request(`/admin/groups/${id}`, { method: 'DELETE', body: JSON.stringify({ confirm: true }) }, true),
+  createMember: (groupId: string, member: Omit<AdminMember, 'id' | 'groupId' | 'order' | 'imageUrl' | 'imageId'>) => request<AdminMember>(`/admin/groups/${groupId}/members`, { method: 'POST', body: JSON.stringify(member) }, true),
+  updateMember: (id: string, member: Partial<AdminMember>) => request<AdminMember>(`/admin/members/${id}`, { method: 'PATCH', body: JSON.stringify(member) }, true),
+  moveMember: (id: string, direction: 'up' | 'down') => request(`/admin/members/${id}/move`, { method: 'POST', body: JSON.stringify({ direction }) }, true),
+  deleteMember: (id: string) => request(`/admin/members/${id}`, { method: 'DELETE', body: JSON.stringify({ confirm: true }) }, true),
+  uploadProjectHero: (slug: string, file: File) => request<{ imageUrl: string }>(`/admin/projects/${slug}/hero`, { method: 'PUT', body: file, headers: { 'Content-Type': 'image/jpeg' } }, true),
+  deleteProjectHero: (slug: string) => request(`/admin/projects/${slug}/hero`, { method: 'DELETE' }, true),
+  uploadMemberPhoto: (id: string, file: File) => request<{ imageUrl: string }>(`/admin/members/${id}/photo`, { method: 'PUT', body: file, headers: { 'Content-Type': 'image/jpeg' } }, true),
+  deleteMemberPhoto: (id: string) => request<{ imageUrl: null }>(`/admin/members/${id}/photo`, { method: 'DELETE' }, true),
   createProject: (project: Omit<Project, '_id'>) => request<Project>('/admin/projects', { method: 'POST', body: JSON.stringify(project) }, true),
   getTeam: () => request<TeamMember[]>('/team'),
   getAlumni: () => request<unknown[]>('/alumni'),
@@ -98,11 +141,39 @@ export const adminApi = {
   getGallery: () => request<GalleryItem[]>('/gallery'),
   getLegacy: () => request<LegacyItem[]>('/legacy'),
   getEvents: () => request<AdminEvent[]>('/admin/events', {}, true),
-  createEvent: (event: EventPayload) => request<AdminEvent>('/admin/events', {
+  setRegistrationOpen: (id: string, open: boolean) => request<AdminEvent>(`/admin/events/${id}/registration`, {
+    method: 'PATCH',
+    body: JSON.stringify({ open }),
+  }, true),
+  getEvent: (id: string) => request<AdminEvent & EventFormPayload>(`/admin/events/${id}`, {}, true),
+  createEvent: (event: EventFormPayload) => request<AdminEvent>('/admin/events', {
     method: 'POST',
     body: JSON.stringify(event),
   }, true),
-  updateEvent: (id: string, event: Omit<EventPayload, 'slug'>) => request<AdminEvent & { warning?: string }>(`/admin/events/${id}`, {
+  deleteEvent: (id: string) => request<void>(`/admin/events/${id}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ confirm: true }),
+  }, true),
+  getRegistrations: (id: string, search = '', status = '') => request<Registration[]>(`/admin/events/${id}/registrations?${new URLSearchParams({ ...(search ? { search } : {}), ...(status ? { status } : {}) })}`, {}, true),
+  updateRegistration: (id: string, registration: RegistrationPayload) => request<Registration>(`/admin/registrations/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(registration),
+  }, true),
+  approveRegistration: (id: string) => request<Registration>(`/admin/registrations/${id}/approve`, { method: 'POST' }, true),
+  approveAll: (id: string) => request<{ approved: number }>(`/admin/events/${id}/approve-all`, { method: 'POST' }, true),
+  deleteRegistration: (id: string) => request<void>(`/admin/registrations/${id}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ confirm: true }),
+  }, true),
+  downloadExport: async (id: string, includePending: boolean) => {
+    const token = getToken()
+    const response = await fetch(`${apiUrl}/admin/events/${id}/export${includePending ? '?includePending=true' : ''}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    if (!response.ok) throw new ApiError('Unable to download the export.', response.status)
+    return response
+  },
+  updateEvent: (id: string, event: EventFormPayload) => request<AdminEvent & { warning?: string }>(`/admin/events/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(event),
   }, true),
@@ -112,6 +183,42 @@ export const adminApi = {
     return request<ImageAsset>(`/admin/upload/${page}`, { method: 'POST', body }, true)
   },
   checkConnection: () => request('/home'),
+}
+
+export type Registration = {
+  _id: string
+  event: string
+  fullName: string
+  email: string
+  mobile: string
+  department?: string
+  year: number
+  collegeId?: string
+  collegeName?: string
+  teamName?: string
+  members?: Array<{ fullName: string; department?: string; year: number; collegeId?: string }>
+  headcount: number
+  status: 'pending' | 'approved'
+  registeredAt: string
+}
+
+export type RegistrationPayload = Omit<Registration, '_id' | 'event' | 'headcount' | 'status' | 'registeredAt'>
+
+export type EventFormPayload = {
+  title: string
+  description: string
+  image: string
+  eventDate: string
+  time: string
+  venue: string
+  allowedYears: number[]
+  seatLimit: number
+  closingAt: string
+  published: boolean
+  participation: 'individual' | 'group'
+  minTeamSize?: number
+  maxTeamSize?: number
+  collegeOnly: boolean
 }
 
 export type ContentCollection = Project | TeamMember | Sponsor | GalleryItem | LegacyItem | unknown
